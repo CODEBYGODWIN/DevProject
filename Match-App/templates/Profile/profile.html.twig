@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block body %}
+    <h1>Profile</h1>
+    <table>
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Genre</th>
+            <th>Orientation</th>
+            <th>Bio</th>
+            <th>Birthdate</th>
+        </tr>
+     
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.gender }}</td>
+                <td>{{ user.orientation }}</td>
+                <td>{{ user.bio }}</td>
+                <td>{{ user.birthdate|date('Y-m-d') }}</td>
+            </tr>
+      
+    </table>
+    
+{% endblock %}

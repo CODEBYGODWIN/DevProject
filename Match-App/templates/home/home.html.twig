@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de bord{% endblock %}
+
+{% block body %}
+    <p>Vous êtes connecté en tant que {{ user.username }}</p>
+    <a href="{{ path('logout') }}">Déconnexion</a>
+    <a href="{{ path('profile') }}">Profil</a>
+{% endblock %}
