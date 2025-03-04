@@ -3,32 +3,49 @@
 namespace App\Controller;
 
 use App\Document\User;
+use App\Form\UserType;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 class UserController extends AbstractController
 {
-    #[Route('/add-user', name: 'add_user')]
-    public function addUser(DocumentManager $dm): Response
+    #[Route('/registration', name: 'registration', methods: ['GET', 'POST'])]
+    public function index(
+        Request $request, 
+        DocumentManager $dm,
+        UserPasswordHasherInterface $passwordHasher
+    ): Response
     {
         $user = new User();
-        $user->setFirstName('John');
-        $user->setLastName('Doe');
-        $user->setEmail('john.doe@example.com');
-
-        $dm->persist($user);
-        $dm->flush();
-
-        return new Response('User ajouté avec ID : ' . $user->getId());
-    }
-
-    #[Route('/users', name: 'list_users')]
-    public function listUsers(DocumentManager $dm): Response
-    {
-        $users = $dm->getRepository(User::class)->findAll();
-
-        return $this->json($users);
+        $form = $this->createForm(UserType::class, $user);
+        
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            
+            $existingUser = $dm->getRepository(User::class)->findOneBy(['email' => $user->getEmail()]);
+            if ($existingUser) {
+                $this->addFlash('error', 'Cet email est déjà utilisé.');
+                return $this->redirectToRoute('registration');
+            }
+            
+            
+            $hashedPassword = $passwordHasher->hashPassword($user, $user->getPassword());
+            $user->setPassword($hashedPassword);
+            
+            $dm->persist($user);
+            $dm->flush();
+            
+            $this->addFlash('success', 'Votre compte a été créé avec succès !');
+            return $this->redirectToRoute('profile');
+        }
+        
+        return $this->render('registration/registration.html.twig', [
+            'form' => $form->createView(),
+        ]);
     }
 }

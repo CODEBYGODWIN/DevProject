@@ -11,6 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 class UserType extends AbstractType
@@ -44,6 +45,7 @@ class UserType extends AbstractType
                 ],
             ])
             ->add('bio', TextType::class, ['required' => false])
+            ->add('picture', FileType::class, ['required' => false])
             ->add('save', SubmitType::class, ['label' => 'Créer un compte']);
     }
 
