@@ -45,6 +45,9 @@ class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticate
     #[MongoDB\Field(type: "date")]
     private $createdAt;
 
+    #[MongoDB\ReferenceOne(targetDocument: Inou::class, cascade: ["remove"])]
+    private $inou;
+
     public function __construct()
     {
         $this->createdAt = new \DateTime();
@@ -77,6 +80,9 @@ class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticate
 
     public function getCreatedAt(): ?\DateTime { return $this->createdAt; }
     public function setCreatedAt(\DateTime $createdAt): self { $this->createdAt = $createdAt; return $this; }
+
+    public function getInou(): ?Inou { return $this->inou; }
+    public function setInou(Inou $inou): self { $this->inou = $inou; return $this; }
 
     public function getRoles(): array { return []; }
     public function getSalt(): ?string { return null; }

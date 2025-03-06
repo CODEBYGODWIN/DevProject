@@ -35,7 +35,7 @@ class LoginController extends AbstractController
                 'username' => $user->getUsername(),
             ]);
 
-            return $this->redirectToRoute('home');
+            return $this->redirectToRoute('questionnaire');
         }
 
         return $this->render('login/login.html.twig', [
