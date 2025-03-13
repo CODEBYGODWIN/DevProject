@@ -5,10 +5,6 @@
 {% block body %}
     <h1>Connexion</h1>
 
-    {% for message in app.flashes('error') %}
-        <div style="color: red;">{{ message }}</div>
-    {% endfor %}
-
     {{ form_start(form) }}
         {{ form_row(form.email) }}
         {{ form_row(form.password) }}

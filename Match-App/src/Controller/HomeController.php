@@ -23,4 +23,11 @@ class HomeController extends AbstractController
             'user' => $user,
         ]);
     }
+
+    #[Route('/', name: 'default_home')]
+    public function defaultHome(): Response
+    {
+        return $this->redirectToRoute('registration');
+    }
+
 }

@@ -37,7 +37,7 @@ class UserController extends AbstractController
             $file = $form->get('picture')->getData();
 
             if ($file) {
-                $uploadsDirectory = $this->getParameter('uploads_directory'); // Défini dans services.yaml
+                $uploadsDirectory = $this->getParameter('uploads_directory'); 
                 $newFilename = uniqid().'.'.$file->guessExtension();
 
                 try {
