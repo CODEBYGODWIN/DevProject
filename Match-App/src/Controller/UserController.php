@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 class UserController extends AbstractController
 {
@@ -33,7 +34,28 @@ class UserController extends AbstractController
                 return $this->redirectToRoute('registration');
             }
             
-            
+            $file = $form->get('picture')->getData();
+
+            if ($file) {
+                $uploadsDirectory = $this->getParameter('uploads_directory'); // Défini dans services.yaml
+                $newFilename = uniqid().'.'.$file->guessExtension();
+
+                try {
+                    // Supprime l'ancienne image si elle existe
+                    if ($user->getPicture()) {
+                        $oldFile = $uploadsDirectory . '/' . $user->getPicture();
+                        if (file_exists($oldFile)) {
+                            unlink($oldFile);
+                        }
+                    }
+
+                    $file->move($uploadsDirectory, $newFilename);
+                    $user->setPicture($newFilename);
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Une erreur est survenue lors de l\'upload du fichier.');
+                }
+            }
+
             $hashedPassword = $passwordHasher->hashPassword($user, $user->getPassword());
             $user->setPassword($hashedPassword);
             
@@ -41,7 +63,7 @@ class UserController extends AbstractController
             $dm->flush();
             
             $this->addFlash('success', 'Votre compte a été créé avec succès !');
-            return $this->redirectToRoute('profile');
+            return $this->redirectToRoute('login');
         }
         
         return $this->render('registration/registration.html.twig', [

@@ -12,17 +12,24 @@
             <th>Orientation</th>
             <th>Bio</th>
             <th>Birthdate</th>
+            <th>Picture</th>
         </tr>
-     
-            <tr>
-                <td>{{ user.username }}</td>
-                <td>{{ user.email }}</td>
-                <td>{{ user.gender }}</td>
-                <td>{{ user.orientation }}</td>
-                <td>{{ user.bio }}</td>
-                <td>{{ user.birthdate|date('Y-m-d') }}</td>
-            </tr>
-      
+        <tr>
+            <td>{{ user.username }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.gender }}</td>
+            <td>{{ user.orientation }}</td>
+            <td>{{ user.bio }}</td>
+            <td>{{ user.birthdate|date('Y-m-d') }}</td>
+            <td>
+                {% if user.picture %}
+                    <img src="{{ asset('uploads/' ~ user.picture) }}" alt="Profile Picture" style="max-width: 150px; max-height: 150px;">
+                {% else %}
+                    <img src="{{ asset('uploads/default.png') }}" alt="Profile Picture" style="max-width: 150px; max-height: 150px;">
+                {% endif %}
+            </td>
+        </tr>
     </table>
-    
+
+    <a href="{{ path('profile_edit') }}">Edit</a>
 {% endblock %}

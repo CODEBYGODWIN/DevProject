@@ -26,7 +26,7 @@ class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticate
 
     #[MongoDB\Field(type: "date")]
     #[Assert\NotBlank]
-    private $birthdate;
+    private ?\DateTime $birthdate = null;
 
     #[MongoDB\Field(type: "string")]
     #[Assert\NotBlank]
@@ -37,13 +37,13 @@ class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticate
     private $orientation;
 
     #[MongoDB\Field(type: "string", nullable: true)]
-    private $bio;
+    private ?string $bio = null;
 
     #[MongoDB\Field(type: "string", nullable: true)]
-    private $picture;
+    private ?string $picture = null; 
 
     #[MongoDB\Field(type: "date")]
-    private $createdAt;
+    private ?\DateTime $createdAt = null;
 
     #[MongoDB\ReferenceOne(targetDocument: Inou::class, cascade: ["remove"])]
     private $inou;
@@ -64,7 +64,7 @@ class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticate
     public function setUsername(string $username): self { $this->username = $username; return $this; }
 
     public function getBirthdate(): ?\DateTime { return $this->birthdate; }
-    public function setBirthdate(\DateTime $birthdate): self { $this->birthdate = $birthdate; return $this; }
+    public function setBirthdate(?\DateTime $birthdate): self { $this->birthdate = $birthdate; return $this; }
 
     public function getGender(): ?string { return $this->gender; }
     public function setGender(string $gender): self { $this->gender = $gender; return $this; }
