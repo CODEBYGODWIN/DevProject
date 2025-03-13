@@ -45,7 +45,11 @@ class UserType extends AbstractType
                 ],
             ])
             ->add('bio', TextType::class, ['required' => false])
-            ->add('picture', FileType::class, ['required' => false])
+            ->add('picture', FileType::class, [
+                'required' => false,
+                'data_class' => null, 
+            ])
+            
             ->add('save', SubmitType::class, ['label' => 'Créer un compte']);
     }
 
