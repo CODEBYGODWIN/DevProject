@@ -4,12 +4,14 @@ namespace App\Document;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Uid\Uuid;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[MongoDB\Document(collection: "user")]
-class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface
+class User implements PasswordAuthenticatedUserInterface
 {
-    #[MongoDB\Id]
-    private $id;
+    #[MongoDB\Id(strategy: "NONE", type: "string")]
+    private string $id;
 
     #[MongoDB\Field(type: "string")]
     #[Assert\NotBlank]
@@ -47,10 +49,21 @@ class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticate
 
     public function __construct()
     {
+        $this->id = Uuid::v4()->toRfc4122();
         $this->createdAt = new \DateTime();
     }
 
-    public function getId(): ?string { return $this->id; }
+    public function getId(): string 
+    { 
+        return $this->id; 
+    }
+    
+
+    public function getUuid(): Uuid
+    {
+        return Uuid::fromRfc4122($this->id);
+    }
+
     public function getEmail(): ?string { return $this->email; }
     public function setEmail(string $email): self { $this->email = $email; return $this; }
 
@@ -78,7 +91,7 @@ class User implements \Symfony\Component\Security\Core\User\PasswordAuthenticate
     public function getCreatedAt(): ?\DateTime { return $this->createdAt; }
     public function setCreatedAt(\DateTime $createdAt): self { $this->createdAt = $createdAt; return $this; }
 
-    public function getRoles(): array { return []; }
+    public function getRoles(): array { return ['ROLE_USER']; }
     public function getSalt(): ?string { return null; }
     public function eraseCredentials(): void {}
 }
