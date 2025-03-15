@@ -11,6 +11,14 @@
             {% block importmap %}{{ importmap('app') }}{% endblock %}
         {% endblock %}
     </head>
+
+    {# Dans votre menu de navigation #}
+<nav>
+    <!-- Autres liens de navigation -->
+    {% if app.user %}
+        <a href="{{ path('chat_index') }}">Messagerie</a>
+    {% endif %}
+</nav>
     <body>
         {% block body %}{% endblock %}
     </body>

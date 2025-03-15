@@ -62,4 +62,23 @@ class UserController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
+
+    // Dans App\Controller\UserController.php
+// Ajoutez cette méthode
+
+#[Route('/users', name: 'users_list')]
+public function listUsers(): Response
+{
+    $currentUser = $this->security->getUser();
+    if (!$currentUser) {
+        return $this->redirectToRoute('app_login');
+    }
+
+    $users = $this->dm->getRepository(User::class)
+        ->findBy(['id' => ['$ne' => $currentUser->getId()]]);
+
+    return $this->render('user/list.html.twig', [
+        'users' => $users,
+    ]);
+}
 }
