@@ -16,15 +16,15 @@ services:
     volumes:
       - database_data:/var/lib/postgresql/data:rw
     ports:
-      - "5432:5432"  # Exposition du port 5432 pour PostgreSQL
+      - "5432:5432"
   ###< doctrine/doctrine-bundle ###
 
   ###> symfony/mailer ###
   mailer:
     image: axllent/mailpit
     ports:
-      - "1025:1025"  # Exposition du port SMTP
-      - "8025:8025"  # Exposition du port web Mailpit
+      - "1025:1025"
+      - "8025:8025"
     environment:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
@@ -35,33 +35,20 @@ services:
     image: dunglas/mercure
     restart: unless-stopped
     environment:
-      # Les clés JWT doivent correspondre à celles définies dans .env et mercure.yaml
-      MERCURE_PUBLISHER_JWT_KEY: 'ThisIsASecureKeyWithAtLeast32Characters123'
+      SERVER_NAME: ':80'
+      MERCURE_PUBLISHER_JWT_KEY: '${MERCURE_JWT_SECRET:-ThisIsASecureKeyWithAtLeast32Characters123}'
       MERCURE_PUBLISHER_JWT_ALG: 'HS256'
-      MERCURE_SUBSCRIBER_JWT_KEY: 'ThisIsASecureKeyWithAtLeast32Characters123'
+      MERCURE_SUBSCRIBER_JWT_KEY: '${MERCURE_JWT_SECRET:-ThisIsASecureKeyWithAtLeast32Characters123}'
       MERCURE_SUBSCRIBER_JWT_ALG: 'HS256'
-      # Configuration des CORS pour permettre les connexions depuis votre application
       MERCURE_EXTRA_DIRECTIVES: |
-        cors_origins http://127.0.0.1:8000 http://localhost:8000
-        # Permettre la publication depuis votre app
-        publish_origins http://127.0.0.1:8000 http://localhost:8000
-        # Permettre les connexions anonymes pour les abonnés
+        cors_origins *
+        publish_origins *
         anonymous
-        # Activer les abonnements
         subscriptions
-    command: /usr/bin/caddy run --config /etc/caddy/dev.Caddyfile
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/healthz"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-    volumes:
-      - ./dev.Caddyfile:/etc/caddy/dev.Caddyfile
-      - mercure_data:/data
-      - mercure_config:/config
     ports:
-      - "3000:80"  # Exposition du port 80 de Mercure sur le port 3000
+      - "3000:80"
+    volumes:
+      - mercure_data:/data
   ###< symfony/mercure-bundle ###
 
   ###> Symfony App ###
@@ -70,14 +57,13 @@ services:
     container_name: symfony_app
     working_dir: /app
     environment:
-      # Ajout des variables d'environnement nécessaires
       MERCURE_URL: 'http://mercure/.well-known/mercure'
       MERCURE_PUBLIC_URL: 'http://localhost:3000/.well-known/mercure'
       MERCURE_JWT_SECRET: 'ThisIsASecureKeyWithAtLeast32Characters123'
     volumes:
       - .:/app
     ports:
-      - "8000:8000"  # Exposition du port 8000 pour Symfony
+      - "8000:8000"
     depends_on:
       - database
       - mercure
@@ -90,5 +76,4 @@ volumes:
 
   ###> symfony/mercure-bundle ###
   mercure_data:
-  mercure_config:
   ###< symfony/mercure-bundle ###

@@ -3,259 +3,259 @@
 {% block title %}Chat{% endblock %}
 
 {% block stylesheets %}
-{{ parent() }}
-<style>
-    :root {
-        --primary-gradient: linear-gradient(135deg, #6e8efb, #a777e3);
-        --secondary-gradient: linear-gradient(135deg, #42a5f5, #2979ff);
-        --danger-gradient: linear-gradient(135deg, #ff9ff3, #ec38bc);
-        --light-color: #f8f9fa;
-        --dark-color: #343a40;
-        --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        --border-radius: 12px;
-        --transition: all 0.3s ease;
-    }
+    {{ parent() }}
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6e8efb, #a777e3);
+            --secondary-gradient: linear-gradient(135deg, #42a5f5, #2979ff);
+            --danger-gradient: linear-gradient(135deg, #ff9ff3, #ec38bc);
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+        }
 
-    body {
-        background-color: #f9fafb;
-    }
+        body {
+            background-color: #f9fafb;
+        }
 
-    .chat-container {
-        max-width: 900px;
-        margin: 2rem auto;
-        box-shadow: var(--shadow);
-        border-radius: var(--border-radius);
-        overflow: hidden;
-    }
-
-    .chat-header {
-        background: var(--primary-gradient);
-        padding: 1rem 1.5rem;
-        color: white;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .partner-info {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .avatar {
-        position: relative;
-        border-radius: 50%;
-        overflow: hidden;
-        flex-shrink: 0;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        border: 2px solid rgba(255, 255, 255, 0.5);
-    }
-
-    .avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
-
-    .online-indicator {
-        height: 10px;
-        width: 10px;
-        background-color: #4CAF50;
-        border-radius: 50%;
-        border: 2px solid white;
-        position: absolute;
-        bottom: 0;
-        right: 0;
-    }
-
-    .chat-box {
-        height: 500px;
-        overflow-y: auto;
-        background-color: #f5f7fa;
-        padding: 1.5rem;
-        scroll-behavior: smooth;
-    }
-
-    .message-container {
-        display: flex;
-        margin-bottom: 1.5rem;
-        align-items: flex-end;
-    }
-
-    .message-container.current-user {
-        justify-content: flex-end;
-    }
-
-    .message-bubble {
-        border-radius: 18px;
-        padding: 0.75rem 1rem;
-        max-width: 70%;
-        position: relative;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        word-break: break-word;
-        animation: fadeIn 0.3s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .message-bubble.current-user {
-        background: var(--secondary-gradient);
-        color: white;
-        border-bottom-right-radius: 4px;
-        margin-left: auto;
-    }
-
-    .message-bubble.partner {
-        background: var(--danger-gradient);
-        color: white;
-        border-bottom-left-radius: 4px;
-    }
-
-    .message-time {
-        font-size: 0.7rem;
-        text-align: right;
-        margin-top: 0.25rem;
-        opacity: 0.8;
-    }
-
-    .read-indicator {
-        display: inline-flex;
-        margin-left: 0.25rem;
-    }
-
-    .chat-footer {
-        background-color: white;
-        padding: 1.25rem;
-        border-top: 1px solid #eaeaea;
-        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
-    }
-
-    .message-form {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .chat-input {
-        flex: 1;
-        border-radius: 30px;
-        padding: 0.75rem 1.25rem;
-        border: 1px solid #e0e0e0;
-        transition: var(--transition);
-        font-size: 1rem;
-        background-color: #f5f7fa;
-    }
-
-    .chat-input:focus {
-        box-shadow: 0 0 0 3px rgba(110, 142, 251, 0.15);
-        border-color: #6e8efb;
-        outline: none;
-        background-color: white;
-    }
-
-    .send-button {
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--primary-gradient);
-        border: none;
-        box-shadow: var(--shadow);
-        transition: var(--transition);
-        cursor: pointer;
-    }
-
-    .send-button:hover {
-        transform: scale(1.05);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-    }
-
-    .send-button:active {
-        transform: scale(0.95);
-    }
-
-    .send-button i {
-        font-size: 1.2rem;
-    }
-
-    .delete-message {
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        background-color: white;
-        border-radius: 50%;
-        width: 22px;
-        height: 22px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transition: opacity 0.2s ease;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        border: none;
-        cursor: pointer;
-    }
-
-    .message-container:hover .delete-message {
-        opacity: 1;
-    }
-
-    .empty-chat {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        color: #888;
-    }
-
-    .empty-chat i {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        background: var(--primary-gradient);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        opacity: 0.6;
-    }
-
-    .home-button {
-        background-color: rgba(255, 255, 255, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        transition: var(--transition);
-    }
-
-    .home-button:hover {
-        background-color: rgba(255, 255, 255, 0.3);
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
         .chat-container {
-            margin: 0;
-            height: 100vh;
-            border-radius: 0;
+            max-width: 900px;
+            margin: 2rem auto;
+            box-shadow: var(--shadow);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: var(--primary-gradient);
+            padding: 1rem 1.5rem;
+            color: white;
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .partner-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .avatar {
+            position: relative;
+            border-radius: 50%;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .online-indicator {
+            height: 10px;
+            width: 10px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            border: 2px solid white;
+            position: absolute;
+            bottom: 0;
+            right: 0;
         }
 
         .chat-box {
-            flex: 1;
-            height: auto;
+            height: 500px;
+            overflow-y: auto;
+            background-color: #f5f7fa;
+            padding: 1.5rem;
+            scroll-behavior: smooth;
+        }
+
+        .message-container {
+            display: flex;
+            margin-bottom: 1.5rem;
+            align-items: flex-end;
+        }
+
+        .message-container.current-user {
+            justify-content: flex-end;
         }
 
         .message-bubble {
-            max-width: 85%;
+            border-radius: 18px;
+            padding: 0.75rem 1rem;
+            max-width: 70%;
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            word-break: break-word;
+            animation: fadeIn 0.3s ease-in-out;
         }
-    }
-</style>
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-bubble.current-user {
+            background: var(--secondary-gradient);
+            color: white;
+            border-bottom-right-radius: 4px;
+            margin-left: auto;
+        }
+
+        .message-bubble.partner {
+            background: var(--danger-gradient);
+            color: white;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            text-align: right;
+            margin-top: 0.25rem;
+            opacity: 0.8;
+        }
+
+        .read-indicator {
+            display: inline-flex;
+            margin-left: 0.25rem;
+        }
+
+        .chat-footer {
+            background-color: white;
+            padding: 1.25rem;
+            border-top: 1px solid #eaeaea;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+        }
+
+        .message-form {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            border-radius: 30px;
+            padding: 0.75rem 1.25rem;
+            border: 1px solid #e0e0e0;
+            transition: var(--transition);
+            font-size: 1rem;
+            background-color: #f5f7fa;
+        }
+
+        .chat-input:focus {
+            box-shadow: 0 0 0 3px rgba(110, 142, 251, 0.15);
+            border-color: #6e8efb;
+            outline: none;
+            background-color: white;
+        }
+
+        .send-button {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-gradient);
+            border: none;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
+        }
+
+        .send-button i {
+            font-size: 1.2rem;
+        }
+
+        .delete-message {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border: none;
+            cursor: pointer;
+        }
+
+        .message-container:hover .delete-message {
+            opacity: 1;
+        }
+
+        .empty-chat {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #888;
+        }
+
+        .empty-chat i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0.6;
+        }
+
+        .home-button {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            transition: var(--transition);
+        }
+
+        .home-button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .chat-container {
+                margin: 0;
+                height: 100vh;
+                border-radius: 0;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .chat-box {
+                flex: 1;
+                height: auto;
+            }
+
+            .message-bubble {
+                max-width: 85%;
+            }
+        }
+    </style>
 {% endblock %}
 
 {% block body %}
@@ -286,7 +286,7 @@
                 {% if messages|length > 0 %}
                     {% for message in messages %}
                         {% set isCurrentUser = message.sender.id == app.session.get('user').id %}
-                        <div class="message-container {% if isCurrentUser %}current-user{% endif %}">
+                        <div class="message-container {% if isCurrentUser %}current-user{% endif %}" data-message-id="{{ message.id }}">
                             {% if not isCurrentUser %}
                                 <div class="avatar me-2" style="width: 32px; height: 32px;">
                                     {% if message.sender.picture %}
@@ -309,11 +309,9 @@
                                 </div>
 
                                 {% if isCurrentUser %}
-                                    <form method="POST" action="{{ path('delete_message', {'messageId': message.id}) }}" class="delete-message" onsubmit="return confirm('Supprimer ce message ?')">
-                                        <button type="submit" class="btn p-0">
-                                            <i class="bi bi-trash text-danger" style="font-size: 12px;"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button" class="delete-message" data-message-id="{{ message.id }}">
+                                        <i class="bi bi-trash text-danger" style="font-size: 12px;"></i>
+                                    </button>
                                 {% endif %}
                             </div>
                         </div>
@@ -328,153 +326,220 @@
             </div>
 
             <div class="chat-footer">
-                <form method="POST" action="{{ path('send_message', {'chatId': chat.id}) }}" class="message-form">
-                    <input type="text" name="content" class="chat-input" placeholder="Écrivez votre message..." required autocomplete="off">
-                    <button type="submit" class="send-button">
+                <div class="message-form">
+                    <input type="text" id="message-input" class="chat-input" placeholder="Écrivez votre message..." autocomplete="off">
+                    <button type="button" id="send-button" class="send-button">
                         <i class="bi bi-send-fill text-white"></i>
                     </button>
-                </form>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Auto-scroll to bottom on page load
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded and parsed');
+
             const chatBox = document.getElementById('chat-messages');
-            chatBox.scrollTop = chatBox.scrollHeight;
-        });
+            const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+            const chatId = '{{ chat.id }}';
+            const currentUserId = '{{ app.session.get('user').id }}';
+            const baseUploadPath = "{{ asset('uploads/') }}".replace('/uploads', '');
+            const defaultImagePath = "{{ asset('uploads/default.png') }}";
 
-        // Auto-scroll when sending a message
-        const messageForm = document.querySelector('.message-form');
-        if (messageForm) {
-            messageForm.addEventListener('submit', function() {
-                localStorage.setItem('shouldScroll', 'true');
-            });
-        }
+            // Auto-scroll to bottom on page load
+            scrollToBottom();
 
-        // Check if we should scroll after page reload
-        if (localStorage.getItem('shouldScroll') === 'true') {
-            localStorage.removeItem('shouldScroll');
-            setTimeout(() => {
-                const chatBox = document.getElementById('chat-messages');
+            // Function to scroll to bottom of chat
+            function scrollToBottom() {
                 chatBox.scrollTop = chatBox.scrollHeight;
-            }, 100);
-        }
+            }
 
-        // Précalculer les chemins d'accès aux images pour éviter les problèmes de concaténation
-        const baseUploadPath = "{{ asset('uploads/') }}";
-        const defaultImagePath = "{{ asset('uploads/default.png') }}";
-        const currentUserId = {{ app.session.get('user').id }};
+            // Function to create a message element
+            function createMessageElement(message) {
+                const isCurrentUser = message.sender.id === currentUserId;
 
-        // Listen for Mercure updates with proper error handling
-        try {
-            const mercureUrl = new URL('{{ mercure_public_url }}');
-            mercureUrl.searchParams.append('topic', 'chat/{{ chat.id }}');
-            
-            // Aucun besoin d'ajouter des paramètres d'authentification, le cookie s'en charge
-            const eventSource = new EventSource(mercureUrl);
-            
-            eventSource.onmessage = (event) => {
-                try {
-                    const message = JSON.parse(event.data);
+                const messageContainer = document.createElement('div');
+                messageContainer.className = `message-container ${isCurrentUser ? 'current-user' : ''}`;
+                messageContainer.dataset.messageId = message.id;
 
-                    const chatBox = document.getElementById('chat-messages');
-                    const isCurrentUser = message.sender.id === currentUserId;
+                if (!isCurrentUser) {
+                    const avatar = document.createElement('div');
+                    avatar.className = 'avatar me-2';
+                    avatar.style.width = '32px';
+                    avatar.style.height = '32px';
 
-                    const messageContainer = document.createElement('div');
-                    messageContainer.className = `message-container ${isCurrentUser ? 'current-user' : ''}`;
+                    const imgSrc = message.sender.picture 
+                        ? `${baseUploadPath}/uploads/${message.sender.picture}` 
+                        : defaultImagePath;
 
-                    if (!isCurrentUser) {
-                        const avatar = document.createElement('div');
-                        avatar.className = 'avatar me-2';
-                        avatar.style.width = '32px';
-                        avatar.style.height = '32px';
-                        
-                        // Utiliser les variables précalculées
-                        const imgSrc = message.sender.picture 
-                            ? `${baseUploadPath}${message.sender.picture}` 
-                            : defaultImagePath;
-                        
-                        const img = document.createElement('img');
-                        img.src = imgSrc;
-                        img.alt = message.sender.username;
-                        
-                        avatar.appendChild(img);
-                        messageContainer.appendChild(avatar);
-                    }
+                    const img = document.createElement('img');
+                    img.src = imgSrc;
+                    img.alt = message.sender.username;
 
-                    const messageBubble = document.createElement('div');
-                    messageBubble.className = `message-bubble ${isCurrentUser ? 'current-user' : 'partner'}`;
-                    
-                    const messageText = document.createElement('div');
-                    messageText.className = 'message-text';
-                    messageText.textContent = message.content;
-                    
-                    const messageTime = document.createElement('div');
-                    messageTime.className = 'message-time';
-                    messageTime.textContent = message.timestamp;
-                    
-                    if (isCurrentUser) {
-                        const readIndicator = document.createElement('span');
-                        readIndicator.className = 'read-indicator';
-                        readIndicator.innerHTML = '<i class="bi bi-check2-all"></i>';
-                        messageTime.appendChild(readIndicator);
-                        
-                        // Ajouter bouton de suppression
-                        if (message.id) {
-                            const deleteForm = document.createElement('form');
-                            deleteForm.method = 'POST';
-                            deleteForm.action = `/message/${message.id}/delete`;
-                            deleteForm.className = 'delete-message';
-                            deleteForm.onsubmit = function() {
-                                return confirm('Supprimer ce message ?');
-                            };
-                            
-                            const deleteButton = document.createElement('button');
-                            deleteButton.type = 'submit';
-                            deleteButton.className = 'btn p-0';
-                            deleteButton.innerHTML = '<i class="bi bi-trash text-danger" style="font-size: 12px;"></i>';
-                            
-                            deleteForm.appendChild(deleteButton);
-                            messageBubble.appendChild(deleteForm);
+                    avatar.appendChild(img);
+                    messageContainer.appendChild(avatar);
+                }
+
+                const messageBubble = document.createElement('div');
+                messageBubble.className = `message-bubble ${isCurrentUser ? 'current-user' : 'partner'}`;
+
+                const messageText = document.createElement('div');
+                messageText.className = 'message-text';
+                messageText.textContent = message.content;
+
+                const messageTime = document.createElement('div');
+                messageTime.className = 'message-time';
+                messageTime.textContent = message.timestamp;
+
+                if (isCurrentUser) {
+                    const readIndicator = document.createElement('span');
+                    readIndicator.className = 'read-indicator';
+                    readIndicator.innerHTML = '<i class="bi bi-check2-all"></i>';
+                    messageTime.appendChild(readIndicator);
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.type = 'button';
+                    deleteButton.className = 'delete-message';
+                    deleteButton.dataset.messageId = message.id;
+                    deleteButton.innerHTML = '<i class="bi bi-trash text-danger" style="font-size: 12px;"></i>';
+
+                    deleteButton.addEventListener('click', function() {
+                        if (confirm('Supprimer ce message ?')) {
+                            deleteMessage(message.id);
                         }
-                    }
-                    
-                    messageBubble.appendChild(messageText);
-                    messageBubble.appendChild(messageTime);
-                    messageContainer.appendChild(messageBubble);
-                    
-                    chatBox.appendChild(messageContainer);
+                    });
 
-                    // Scroll down
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                    
-                    // Si la boîte de chat était vide, supprimer le message "commencez la conversation"
-                    const emptyChat = chatBox.querySelector('.empty-chat');
+                    messageBubble.appendChild(deleteButton);
+                }
+
+                messageBubble.appendChild(messageText);
+                messageBubble.appendChild(messageTime);
+                messageContainer.appendChild(messageBubble);
+
+                return messageContainer;
+            }
+
+            // Function to send a message
+            function sendMessage() {
+                console.log('sendMessage function called');
+                const content = messageInput.value.trim();
+                console.log('Content:', content);
+                if (!content) return;
+
+                fetch(`/chat/${chatId}/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content })
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    if (!response.ok) {
+                        return response.json().then(err => { throw new Error(err.error || 'Network response was not ok'); });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Message sent successfully:', data);
+                    // Clear input after successful send
+                    messageInput.value = '';
+                    messageInput.focus();
+                })
+                .catch(error => {
+                    console.error('Error sending message:', error);
+                    alert('Erreur lors de l\'envoi du message. Veuillez réessayer.');
+                });
+            }
+
+            // Function to delete a message
+            function deleteMessage(messageId) {
+                fetch(`/message/${messageId}/delete`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .catch(error => {
+                    console.error('Error deleting message:', error);
+                    alert('Erreur lors de la suppression du message. Veuillez réessayer.');
+                });
+            }
+
+            // Event listeners
+            sendButton.addEventListener('click', sendMessage);
+
+            messageInput.addEventListener('keypress', function(event) {
+                console.log('Keypress event detected');
+                if (event.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            // Attach event listeners to existing delete buttons
+            document.querySelectorAll('.delete-message').forEach(button => {
+                button.addEventListener('click', function() {
+                    if (confirm('Supprimer ce message ?')) {
+                        deleteMessage(this.dataset.messageId);
+                    }
+                });
+            });
+
+            // Set up Mercure connection
+            const mercureUrl = new URL('{{ mercure_public_url }}');
+            mercureUrl.searchParams.append('topic', `chat/${chatId}`);
+
+            const eventSource = new EventSource(mercureUrl);
+
+            eventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+
+                    // Handle message deletion
+                    if (data.action === 'delete') {
+                        const messageElement = document.querySelector(`[data-message-id="${data.messageId}"]`);
+                        if (messageElement) {
+                            messageElement.remove();
+                        }
+                        return;
+                    }
+
+                    // Handle new message
+                    const messageElement = createMessageElement(data);
+                    chatBox.appendChild(messageElement);
+
+                    // Remove empty chat message if present
+                    const emptyChat = document.querySelector('.empty-chat');
                     if (emptyChat) {
                         emptyChat.remove();
                     }
-                } catch (e) {
-                    console.error('Error processing message:', e);
+
+                    // Scroll to bottom to show new message
+                    scrollToBottom();
+                } catch (error) {
+                    console.error('Error processing message:', error);
                 }
             };
-            
-            eventSource.onerror = (error) => {
+
+            eventSource.onerror = function(error) {
                 console.error('EventSource error:', error);
-                // Tentative de reconnexion après 3 secondes
+                // Attempt to reconnect after a short delay
                 setTimeout(() => {
                     eventSource.close();
-                    // Logique de reconnexion
+                    // Reconnection logic
                     const newEventSource = new EventSource(mercureUrl);
-                    // Réassigner les gestionnaires d'événements
                     newEventSource.onmessage = eventSource.onmessage;
                     newEventSource.onerror = eventSource.onerror;
+
+                    // Update the reference
                     eventSource = newEventSource;
                 }, 3000);
             };
-        } catch (e) {
-            console.error('Error initializing EventSource:', e);
-        }
+        });
     </script>
 {% endblock %}
