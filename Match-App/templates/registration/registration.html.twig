@@ -1,23 +1,26 @@
 {% extends 'base.html.twig' %}
 
+
 {% block title %}Registration{% endblock %}
 
 {% block body %}
     <div class="container">
         <h1>Registration</h1>
         
-       
-        
+  
         {{ form_start(form) }}
+            <p>L'email doit avoir au moins 8 caractères</p>
             {{ form_row(form.email) }}
+            
+           <p>Le nom d'utilisateur doit avoir au moins 6 caractères</p>
             {{ form_row(form.username) }}
+            <p>Le mot de passe doit avoir au moins 8 caractères avec au moins une majuscule, une minuscule, un chiffre et un caractère spécial</p>
             {{ form_row(form.password) }}
+            <p>Vous devez avoir au moins 18 ans pour vous inscrire</p>
             {{ form_row(form.birthdate) }}
             {{ form_row(form.gender) }}
-            {{ form_row(form.orientation) }}
             {{ form_row(form.bio) }}
             {{form_row(form.picture)}}
-            {{ form_row(form.save) }}
         {{ form_end(form) }}
         <button type="submit"><a href="{{ path('login') }}">Se connecter</a></button>
     </div>

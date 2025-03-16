@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Document\User;
-use App\Form\UserEditType;
+use App\Form\UserEditType; 
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;

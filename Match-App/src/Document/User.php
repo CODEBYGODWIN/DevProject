@@ -14,29 +14,34 @@ class User implements PasswordAuthenticatedUserInterface
     private string $id;
 
     #[MongoDB\Field(type: "string")]
-    #[Assert\NotBlank]
-    #[Assert\Email]
+    #[Assert\NotBlank(message: "L'email ne peut pas être vide")]
+    #[Assert\Email(message: "Le champ {{ label}} n'est pas valide")]
+    #[Assert\Length(min: 8, minMessage: "L'email doit avoir au moins {{ limit }} caractères")]
     private $email;
 
     #[MongoDB\Field(type: "string")]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: "Le mot de passe ne peut pas être vide")]
+    #[Assert\Length(min: 8, minMessage: "Le mot de passe doit avoir au moins {{ limit }} caractères")]
+    #[Assert\Regex(
+        pattern: "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/",
+        message: "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial"
+    )]
     private $password;
 
     #[MongoDB\Field(type: "string")]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: "Le nom d'utilisateur ne peut pas être vide")]
+    #[Assert\Length(min: 6, minMessage: "Le nom d'utilisateur doit avoir au moins {{ limit }} caractères")]
     private $username;
 
     #[MongoDB\Field(type: "date")]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: "La date de naissance ne peut pas être vide")]
+    #[Assert\LessThanOrEqual("-18 years", message: "Vous devez avoir au moins 18 ans pour vous inscrire")]
     private ?\DateTime $birthdate = null;
 
     #[MongoDB\Field(type: "string")]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(message: "Le genre ne peut pas être vide")]
     private $gender;
 
-    #[MongoDB\Field(type: "string")]
-    #[Assert\NotBlank]
-    private $orientation;
 
     #[MongoDB\Field(type: "string", nullable: true)]
     private ?string $bio = null;
@@ -61,7 +66,6 @@ class User implements PasswordAuthenticatedUserInterface
         return $this->id; 
     }
     
-
     public function getUuid(): Uuid
     {
         return Uuid::fromRfc4122($this->id);
@@ -81,9 +85,6 @@ class User implements PasswordAuthenticatedUserInterface
 
     public function getGender(): ?string { return $this->gender; }
     public function setGender(string $gender): self { $this->gender = $gender; return $this; }
-
-    public function getOrientation(): ?string { return $this->orientation; }
-    public function setOrientation(string $orientation): self { $this->orientation = $orientation; return $this; }
 
     public function getBio(): ?string { return $this->bio; }
     public function setBio(?string $bio): self { $this->bio = $bio; return $this; }
