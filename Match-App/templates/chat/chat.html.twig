@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Chat{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1>Discussion</h1>
+        <div class="chat-box border rounded p-3 mb-3" style="height: 400px; overflow-y: scroll; background: #f8f9fa;">
+            {% for message in messages %}
+                <div class="d-flex {% if message.sender.id == app.session.get('user').id %}justify-content-end{% else %}justify-content-start{% endif %} mb-2">
+                    <div class="message p-2 rounded {% if message.sender.id == app.session.get('user').id %}bg-primary text-white{% else %}bg-light{% endif %}">
+                        <strong>{{ message.sender.username }}</strong><br>
+                        {{ message.content }}
+                        <small class="d-block text-muted">{{ message.createdAt|date('H:i') }}</small>
+                    </div>
+                    {% if message.sender.id == app.session.get('user').id %}
+                        <form method="POST" action="{{ path('delete_message', {'messageId': message.id}) }}" class="ms-2">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">✖</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <form method="POST" action="{{ path('send_message', {'chatId': chat.id}) }}">
+            <div class="input-group">
+                <input type="text" name="content" class="form-control" placeholder="Écrivez votre message..." required>
+                <button type="submit" class="btn btn-primary">Envoyer</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
