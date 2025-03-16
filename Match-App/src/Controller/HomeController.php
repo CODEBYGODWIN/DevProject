@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Document\User;
+use App\Document\Chat;
 use App\Service\MatchingService;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,9 +31,57 @@ class HomeController extends AbstractController {
             return $this->redirectToRoute('questionnaire');
         }
         
+        $chats = $dm->getRepository(Chat::class)->findBy([
+            '$or' => [
+                ['user1' => $userEntity],
+                ['user2' => $userEntity]
+            ]
+        ]);
+        
+        $chatPartnerIds = [];
+        foreach ($chats as $chat) {
+            if ($chat->getUser1()->getId() === $userEntity->getId()) {
+                $chatPartnerIds[] = $chat->getUser2()->getId();
+            } else {
+                $chatPartnerIds[] = $chat->getUser1()->getId();
+            }
+        }
+        
+        usort($chats, function($a, $b) {
+            $aMessages = $a->getMessages();
+            $bMessages = $b->getMessages();
+            
+            if (empty($aMessages)) return 1;
+            if (empty($bMessages)) return -1;
+            
+            $aLastMessage = end($aMessages);
+            $bLastMessage = end($bMessages);
+            
+            return strtotime($bLastMessage['timestamp']) - strtotime($aLastMessage['timestamp']);
+        });
+        
+        $formattedChats = [];
+        foreach ($chats as $chat) {
+            $partner = ($chat->getUser1()->getId() === $userEntity->getId()) 
+                ? $chat->getUser2() : $chat->getUser1();
+            
+            $messages = $chat->getMessages();
+            $lastMessage = !empty($messages) ? end($messages) : null;
+            
+            $formattedChats[] = [
+                'id' => $chat->getId(),
+                'partner' => $partner,
+                'lastMessage' => $lastMessage ? [
+                    'content' => $lastMessage['content'],
+                    'timestamp' => $lastMessage['timestamp'],
+                    'isFromCurrentUser' => $lastMessage['sender'] === $userEntity->getId()
+                ] : null
+            ];
+        }
+        
         $matches = $matchingService->findMatches($userEntity);
         
-        $matchesWithPercentage = array_map(function($match) {
+        $matchesWithPercentage = array_map(function($match) use ($chatPartnerIds) {
             $percentage = ($match['affinity'] / 18) * 100;
             
             return [
@@ -40,14 +89,16 @@ class HomeController extends AbstractController {
                 'affinity' => $match['affinity'],
                 'percentage' => round($percentage, 1),
                 'colorClass' => $this->getColorClass($percentage),
-                'isRomanticMatch' => $match['isRomanticMatch'] ?? false
+                'isRomanticMatch' => $match['isRomanticMatch'] ?? false,
+                'hasChat' => in_array($match['user']->getId(), $chatPartnerIds)
             ];
         }, $matches);
         
         return $this->render('home/home.html.twig', [
             'user' => $userEntity,
             'matches' => $matchesWithPercentage,
-            'goal' => $userEntity->getInou()->getQ2()
+            'goal' => $userEntity->getInou()->getQ2(),
+            'chats' => $formattedChats
         ]);
     }
     

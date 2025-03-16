@@ -2,30 +2,479 @@
 
 {% block title %}Chat{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #6e8efb, #a777e3);
+        --secondary-gradient: linear-gradient(135deg, #42a5f5, #2979ff);
+        --danger-gradient: linear-gradient(135deg, #ff9ff3, #ec38bc);
+        --light-color: #f8f9fa;
+        --dark-color: #343a40;
+        --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        --border-radius: 12px;
+        --transition: all 0.3s ease;
+    }
+
+    body {
+        background-color: #f9fafb;
+    }
+
+    .chat-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        box-shadow: var(--shadow);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+    }
+
+    .chat-header {
+        background: var(--primary-gradient);
+        padding: 1rem 1.5rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .partner-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .avatar {
+        position: relative;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        border: 2px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .online-indicator {
+        height: 10px;
+        width: 10px;
+        background-color: #4CAF50;
+        border-radius: 50%;
+        border: 2px solid white;
+        position: absolute;
+        bottom: 0;
+        right: 0;
+    }
+
+    .chat-box {
+        height: 500px;
+        overflow-y: auto;
+        background-color: #f5f7fa;
+        padding: 1.5rem;
+        scroll-behavior: smooth;
+    }
+
+    .message-container {
+        display: flex;
+        margin-bottom: 1.5rem;
+        align-items: flex-end;
+    }
+
+    .message-container.current-user {
+        justify-content: flex-end;
+    }
+
+    .message-bubble {
+        border-radius: 18px;
+        padding: 0.75rem 1rem;
+        max-width: 70%;
+        position: relative;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        word-break: break-word;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message-bubble.current-user {
+        background: var(--secondary-gradient);
+        color: white;
+        border-bottom-right-radius: 4px;
+        margin-left: auto;
+    }
+
+    .message-bubble.partner {
+        background: var(--danger-gradient);
+        color: white;
+        border-bottom-left-radius: 4px;
+    }
+
+    .message-time {
+        font-size: 0.7rem;
+        text-align: right;
+        margin-top: 0.25rem;
+        opacity: 0.8;
+    }
+
+    .read-indicator {
+        display: inline-flex;
+        margin-left: 0.25rem;
+    }
+
+    .chat-footer {
+        background-color: white;
+        padding: 1.25rem;
+        border-top: 1px solid #eaeaea;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .message-form {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .chat-input {
+        flex: 1;
+        border-radius: 30px;
+        padding: 0.75rem 1.25rem;
+        border: 1px solid #e0e0e0;
+        transition: var(--transition);
+        font-size: 1rem;
+        background-color: #f5f7fa;
+    }
+
+    .chat-input:focus {
+        box-shadow: 0 0 0 3px rgba(110, 142, 251, 0.15);
+        border-color: #6e8efb;
+        outline: none;
+        background-color: white;
+    }
+
+    .send-button {
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary-gradient);
+        border: none;
+        box-shadow: var(--shadow);
+        transition: var(--transition);
+        cursor: pointer;
+    }
+
+    .send-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .send-button:active {
+        transform: scale(0.95);
+    }
+
+    .send-button i {
+        font-size: 1.2rem;
+    }
+
+    .delete-message {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background-color: white;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        border: none;
+        cursor: pointer;
+    }
+
+    .message-container:hover .delete-message {
+        opacity: 1;
+    }
+
+    .empty-chat {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: #888;
+    }
+
+    .empty-chat i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        opacity: 0.6;
+    }
+
+    .home-button {
+        background-color: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        transition: var(--transition);
+    }
+
+    .home-button:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .chat-container {
+            margin: 0;
+            height: 100vh;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-box {
+            flex: 1;
+            height: auto;
+        }
+
+        .message-bubble {
+            max-width: 85%;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block body %}
-    <div class="container mt-4">
-        <h1>Discussion</h1>
-        <div class="chat-box border rounded p-3 mb-3" style="height: 400px; overflow-y: scroll; background: #f8f9fa;">
-            {% for message in messages %}
-                <div class="d-flex {% if message.sender.id == app.session.get('user').id %}justify-content-end{% else %}justify-content-start{% endif %} mb-2">
-                    <div class="message p-2 rounded {% if message.sender.id == app.session.get('user').id %}bg-primary text-white{% else %}bg-light{% endif %}">
-                        <strong>{{ message.sender.username }}</strong><br>
-                        {{ message.content }}
-                        <small class="d-block text-muted">{{ message.createdAt|date('H:i') }}</small>
+    <div class="container p-0">
+        <div class="chat-container">
+            <div class="chat-header">
+                <div class="partner-info">
+                    {% set partner = chat.user1.id == app.session.get('user').id ? chat.user2 : chat.user1 %}
+                    <div class="avatar" style="width: 48px; height: 48px;">
+                        {% if partner.picture %}
+                            <img src="{{ asset('uploads/' ~ partner.picture) }}" alt="{{ partner.username }}">
+                        {% else %}
+                            <img src="{{ asset('uploads/default.png') }}" alt="Photo par défaut">
+                        {% endif %}
+                        <div class="online-indicator"></div>
                     </div>
-                    {% if message.sender.id == app.session.get('user').id %}
-                        <form method="POST" action="{{ path('delete_message', {'messageId': message.id}) }}" class="ms-2">
-                            <button type="submit" class="btn btn-sm btn-outline-danger">✖</button>
-                        </form>
-                    {% endif %}
+                    <div>
+                        <h5 class="mb-0 fw-bold">{{ partner.username }}</h5>
+                        <small class="text-white-50">En ligne</small>
+                    </div>
                 </div>
-            {% endfor %}
-        </div>
-        <form method="POST" action="{{ path('send_message', {'chatId': chat.id}) }}">
-            <div class="input-group">
-                <input type="text" name="content" class="form-control" placeholder="Écrivez votre message..." required>
-                <button type="submit" class="btn btn-primary">Envoyer</button>
+                <a href="{{ path('home') }}" class="btn home-button btn-sm text-white">
+                    <i class="bi bi-house-door me-1"></i> Accueil
+                </a>
             </div>
-        </form>
+
+            <div class="chat-box" id="chat-messages">
+                {% if messages|length > 0 %}
+                    {% for message in messages %}
+                        {% set isCurrentUser = message.sender.id == app.session.get('user').id %}
+                        <div class="message-container {% if isCurrentUser %}current-user{% endif %}">
+                            {% if not isCurrentUser %}
+                                <div class="avatar me-2" style="width: 32px; height: 32px;">
+                                    {% if message.sender.picture %}
+                                        <img src="{{ asset('uploads/' ~ message.sender.picture) }}" alt="{{ message.sender.username }}">
+                                    {% else %}
+                                        <img src="{{ asset('uploads/default.png') }}" alt="Photo par défaut">
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+
+                            <div class="message-bubble {% if isCurrentUser %}current-user{% else %}partner{% endif %}">
+                                <div class="message-text">{{ message.content }}</div>
+                                <div class="message-time">
+                                    {{ message.timestamp|date('H:i') }}
+                                    {% if isCurrentUser %}
+                                        <span class="read-indicator">
+                                            <i class="bi bi-check2-all"></i>
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                {% if isCurrentUser %}
+                                    <form method="POST" action="{{ path('delete_message', {'messageId': message.id}) }}" class="delete-message" onsubmit="return confirm('Supprimer ce message ?')">
+                                        <button type="submit" class="btn p-0">
+                                            <i class="bi bi-trash text-danger" style="font-size: 12px;"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-chat">
+                        <i class="bi bi-chat-dots"></i>
+                        <p class="fs-5 mb-0">Commencez la conversation...</p>
+                        <p class="text-muted">Envoyez un message pour démarrer la discussion</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="chat-footer">
+                <form method="POST" action="{{ path('send_message', {'chatId': chat.id}) }}" class="message-form">
+                    <input type="text" name="content" class="chat-input" placeholder="Écrivez votre message..." required autocomplete="off">
+                    <button type="submit" class="send-button">
+                        <i class="bi bi-send-fill text-white"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
+
+    <script>
+        // Auto-scroll to bottom on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatBox = document.getElementById('chat-messages');
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        // Auto-scroll when sending a message
+        const messageForm = document.querySelector('.message-form');
+        if (messageForm) {
+            messageForm.addEventListener('submit', function() {
+                localStorage.setItem('shouldScroll', 'true');
+            });
+        }
+
+        // Check if we should scroll after page reload
+        if (localStorage.getItem('shouldScroll') === 'true') {
+            localStorage.removeItem('shouldScroll');
+            setTimeout(() => {
+                const chatBox = document.getElementById('chat-messages');
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 100);
+        }
+
+        // Précalculer les chemins d'accès aux images pour éviter les problèmes de concaténation
+        const baseUploadPath = "{{ asset('uploads/') }}";
+        const defaultImagePath = "{{ asset('uploads/default.png') }}";
+        const currentUserId = {{ app.session.get('user').id }};
+
+        // Listen for Mercure updates with proper error handling
+        try {
+            const mercureUrl = new URL('{{ mercure_public_url }}');
+            mercureUrl.searchParams.append('topic', 'chat/{{ chat.id }}');
+            
+            // Aucun besoin d'ajouter des paramètres d'authentification, le cookie s'en charge
+            const eventSource = new EventSource(mercureUrl);
+            
+            eventSource.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+
+                    const chatBox = document.getElementById('chat-messages');
+                    const isCurrentUser = message.sender.id === currentUserId;
+
+                    const messageContainer = document.createElement('div');
+                    messageContainer.className = `message-container ${isCurrentUser ? 'current-user' : ''}`;
+
+                    if (!isCurrentUser) {
+                        const avatar = document.createElement('div');
+                        avatar.className = 'avatar me-2';
+                        avatar.style.width = '32px';
+                        avatar.style.height = '32px';
+                        
+                        // Utiliser les variables précalculées
+                        const imgSrc = message.sender.picture 
+                            ? `${baseUploadPath}${message.sender.picture}` 
+                            : defaultImagePath;
+                        
+                        const img = document.createElement('img');
+                        img.src = imgSrc;
+                        img.alt = message.sender.username;
+                        
+                        avatar.appendChild(img);
+                        messageContainer.appendChild(avatar);
+                    }
+
+                    const messageBubble = document.createElement('div');
+                    messageBubble.className = `message-bubble ${isCurrentUser ? 'current-user' : 'partner'}`;
+                    
+                    const messageText = document.createElement('div');
+                    messageText.className = 'message-text';
+                    messageText.textContent = message.content;
+                    
+                    const messageTime = document.createElement('div');
+                    messageTime.className = 'message-time';
+                    messageTime.textContent = message.timestamp;
+                    
+                    if (isCurrentUser) {
+                        const readIndicator = document.createElement('span');
+                        readIndicator.className = 'read-indicator';
+                        readIndicator.innerHTML = '<i class="bi bi-check2-all"></i>';
+                        messageTime.appendChild(readIndicator);
+                        
+                        // Ajouter bouton de suppression
+                        if (message.id) {
+                            const deleteForm = document.createElement('form');
+                            deleteForm.method = 'POST';
+                            deleteForm.action = `/message/${message.id}/delete`;
+                            deleteForm.className = 'delete-message';
+                            deleteForm.onsubmit = function() {
+                                return confirm('Supprimer ce message ?');
+                            };
+                            
+                            const deleteButton = document.createElement('button');
+                            deleteButton.type = 'submit';
+                            deleteButton.className = 'btn p-0';
+                            deleteButton.innerHTML = '<i class="bi bi-trash text-danger" style="font-size: 12px;"></i>';
+                            
+                            deleteForm.appendChild(deleteButton);
+                            messageBubble.appendChild(deleteForm);
+                        }
+                    }
+                    
+                    messageBubble.appendChild(messageText);
+                    messageBubble.appendChild(messageTime);
+                    messageContainer.appendChild(messageBubble);
+                    
+                    chatBox.appendChild(messageContainer);
+
+                    // Scroll down
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    
+                    // Si la boîte de chat était vide, supprimer le message "commencez la conversation"
+                    const emptyChat = chatBox.querySelector('.empty-chat');
+                    if (emptyChat) {
+                        emptyChat.remove();
+                    }
+                } catch (e) {
+                    console.error('Error processing message:', e);
+                }
+            };
+            
+            eventSource.onerror = (error) => {
+                console.error('EventSource error:', error);
+                // Tentative de reconnexion après 3 secondes
+                setTimeout(() => {
+                    eventSource.close();
+                    // Logique de reconnexion
+                    const newEventSource = new EventSource(mercureUrl);
+                    // Réassigner les gestionnaires d'événements
+                    newEventSource.onmessage = eventSource.onmessage;
+                    newEventSource.onerror = eventSource.onerror;
+                    eventSource = newEventSource;
+                }, 3000);
+            };
+        } catch (e) {
+            console.error('Error initializing EventSource:', e);
+        }
+    </script>
 {% endblock %}
