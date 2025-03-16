@@ -55,6 +55,8 @@
                                             {% endif %}
                                         </p>
                                         <button class="btn btn-sm btn-primary">Voir profil</button>
+                                        <a href="{{ path('start_chat', {'userId': match.user.id}) }}" class="btn btn-outline-success">Engager la conversation</a>
+
                                     </div>
                                 </div>
                             </div>
