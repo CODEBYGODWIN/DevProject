@@ -3,7 +3,71 @@
 {% block title %}Tableau de bord{% endblock %}
 
 {% block body %}
-    <p>Vous êtes connecté en tant que {{ user.username }}</p>
-    <a href="{{ path('logout') }}">Déconnexion</a>
-    <a href="{{ path('profile') }}">Profil</a>
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col">
+                <h1>Bienvenue {{ user.username }} !</h1>
+                <div class="d-flex gap-2">
+                    <a href="{{ path('profile') }}" class="btn btn-primary">Profil</a>
+                    <a href="{{ path('logout') }}" class="btn btn-outline-danger">Déconnexion</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                {% if goal is defined and goal %}
+                    <h2>Vos matches {% if goal == 'trouver le grand amour' %}amoureux{% elseif goal == 'construire des relations amicales' %}amicaux{% else %}amicaux et amoureux{% endif %}</h2>
+                {% else %}
+                    <h2>Vos matches</h2>
+                {% endif %}
+                
+                {% if matches|length > 0 %}
+                    <div class="row row-cols-1 row-cols-md-3 g-4">
+                        {% for match in matches %}
+                            <div class="col">
+                                <div class="card h-100">
+                                    {% if match.user.picture %}
+                                        <img src="{{ asset('uploads/' ~ match.user.picture) }}" class="card-img-top" alt="{{ match.user.username }}">
+                                    {% else %}
+                                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                            <i class="bi bi-person-circle" style="font-size: 5rem;"></i>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ match.user.username }}</h5>
+                                        <p class="card-text">
+                                            <span class="badge {{ match.colorClass }}">
+                                                {{ match.percentage }}% d'affinité
+                                            </span>
+                                            
+                                            {% if match.isRomanticMatch is defined %}
+                                                {% if match.isRomanticMatch %}
+                                                    <span class="badge bg-danger ms-1">
+                                                        <i class="bi bi-heart-fill"></i> Match amoureux
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-primary ms-1">
+                                                        <i class="bi bi-people-fill"></i> Match amical
+                                                    </span>
+                                                {% endif %}
+                                            {% endif %}
+                                        </p>
+                                        <button class="btn btn-sm btn-primary">Voir profil</button>
+                                        <a href="{{ path('start_chat', {'userId': match.user.id}) }}" class="btn btn-outline-success">Engager la conversation</a>
+
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        Aucun match trouvé pour le moment. Revenez plus tard lorsque d'autres utilisateurs auront complété leur questionnaire.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 {% endblock %}

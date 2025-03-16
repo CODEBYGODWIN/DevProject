@@ -12,81 +12,40 @@ class Message
     #[MongoDB\Id(strategy: "NONE", type: "string")]
     private string $id;
 
-    #[MongoDB\Field(type: "string")]
+    #[MongoDB\ReferenceOne(targetDocument: Chat::class)]
     #[Assert\NotBlank]
-    private string $conversationId;
+    private Chat $chat;
 
-    #[MongoDB\Field(type: "string")]
+    #[MongoDB\ReferenceOne(targetDocument: User::class)]
     #[Assert\NotBlank]
-    private string $senderId;
+    private User $sender;
 
     #[MongoDB\Field(type: "string")]
     #[Assert\NotBlank]
     private string $content;
 
-    #[MongoDB\Field(type: "boolean")]
-    private bool $read = false;
-
     #[MongoDB\Field(type: "date")]
-    private ?\DateTime $createdAt = null;
+    private ?\DateTime $timestamp = null;
 
-    public function __construct()
+    public function __construct(Chat $chat, User $sender, string $content)
     {
         $this->id = Uuid::v4()->toRfc4122();
-        $this->createdAt = new \DateTime();
-    }
-
-    public function getId(): string
-    {
-        return $this->id;
-    }
-
-    public function getConversationId(): string
-    {
-        return $this->conversationId;
-    }
-
-    public function setConversationId(string $conversationId): self
-    {
-        $this->conversationId = $conversationId;
-        return $this;
-    }
-
-    public function getSenderId(): string
-    {
-        return $this->senderId;
-    }
-
-    public function setSenderId(string $senderId): self
-    {
-        $this->senderId = $senderId;
-        return $this;
-    }
-
-    public function getContent(): string
-    {
-        return $this->content;
-    }
-
-    public function setContent(string $content): self
-    {
+        $this->chat = $chat;
+        $this->sender = $sender;
         $this->content = $content;
-        return $this;
+        $this->timestamp = new \DateTime();
     }
 
-    public function isRead(): bool
-    {
-        return $this->read;
-    }
+    public function getId(): string { return $this->id; }
 
-    public function setRead(bool $read): self
-    {
-        $this->read = $read;
-        return $this;
-    }
+    public function getChat(): Chat { return $this->chat; }
+    public function setChat(Chat $chat): self { $this->chat = $chat; return $this; }
 
-    public function getCreatedAt(): ?\DateTime
-    {
-        return $this->createdAt;
-    }
+    public function getSender(): User { return $this->sender; }
+    public function setSender(User $sender): self { $this->sender = $sender; return $this; }
+
+    public function getContent(): string { return $this->content; }
+    public function setContent(string $content): self { $this->content = $content; return $this; }
+
+    public function getTimestamp(): ?\DateTime { return $this->timestamp; }
 }

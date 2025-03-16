@@ -47,6 +47,9 @@ class User implements PasswordAuthenticatedUserInterface
     #[MongoDB\Field(type: "date")]
     private ?\DateTime $createdAt = null;
 
+    #[MongoDB\ReferenceOne(targetDocument: Inou::class, cascade: ["remove"])]
+    private $inou;
+
     public function __construct()
     {
         $this->id = Uuid::v4()->toRfc4122();
@@ -91,7 +94,10 @@ class User implements PasswordAuthenticatedUserInterface
     public function getCreatedAt(): ?\DateTime { return $this->createdAt; }
     public function setCreatedAt(\DateTime $createdAt): self { $this->createdAt = $createdAt; return $this; }
 
-    public function getRoles(): array { return ['ROLE_USER']; }
+    public function getInou(): ?Inou { return $this->inou; }
+    public function setInou(Inou $inou): self { $this->inou = $inou; return $this; }
+
+    public function getRoles(): array { return []; }
     public function getSalt(): ?string { return null; }
     public function eraseCredentials(): void {}
 }

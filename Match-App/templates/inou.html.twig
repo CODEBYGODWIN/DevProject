@@ -1,0 +1,171 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Questionnaire - Qui veut gagner des millions ?{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="text-center">Répondez aux questions du questionnaire !</h1>
+        
+        <div id="questionPopup" class="popup">
+            <div class="popup-content">
+                <h3 id="questionTitle"></h3>
+                <form id="questionForm" method="post" action="{{ path('questionnaire') }}">
+                    <input type="hidden" id="questionNumber" name="question_number" value="0">
+                    <div id="questionChoices" class="choices"></div>
+                    <button type="submit" class="btn btn-primary">Suivant</button>
+                </form>
+                <button id="closePopup" class="close-popup">Fermer</button>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <button id="startButton" class="btn btn-success">Commencer le questionnaire</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { title: "1. Quelle est votre orientation sexuelle ?", choices: ['Hétérosexuel', 'Homosexuel', 'Asexuel', 'Bisexuel', 'Autre'] },
+            { title: "2. Que voulez vous obtenir de cette plateforme ?", choices: ['construire des relations amicales', 'trouver le grand amour', 'Les deux'] },
+            { title: "3. Quel est votre lieu de vacances idéal ?", choices: ['Plage', 'Montagne', 'Ville', 'Campagne'] },
+            { title: "4. Quel est votre passe-temps préféré ?", choices: ['Sortir avec des amis', 'Lire ou regarder des films/séries', 'Faire du sport', 'Voyager'] },
+            { title: "5. Quelles sont vos aspirations professionnelles ?", choices: ['Travailler dans la tech', 'Devenir entrepreneur', 'Travailler dans les arts', 'Autre'] },
+            { title: "6. Préférez-vous les livres ou les films ?", choices: ['Livres', 'Films', 'Les deux', 'Aucun'] },
+            { title: "7. Vous considérez-vous comme plutôt introverti(e) ou extraverti(e) ?", choices: ['Introverti(e)', 'Extraverti(e)', 'Ni l’un ni l’autre'] },
+            { title: "8. Aimez-vous les animaux ?", choices: ['Oui', 'Non', 'J’aime mais je n’en ai pas'] },
+            { title: "9. Quelle est votre couleur préférée ?", choices: ['Rouge', 'Bleu', 'Vert', 'Jaune', 'Noir', 'Autre'] },
+            { title: "10. Quelle est votre boisson préférée ?", choices: ['Café', 'Thé', 'Eau', 'Soda', 'Jus de fruit'] },
+            { title: "11. Comment décririez-vous votre personnalité ?", choices: ['Sociable', 'Calme', 'Optimiste', 'Réaliste', 'Créatif'] },
+            { title: "12. Quel est votre film préféré ?", choices: ['Action', 'Comédie', 'Drame', 'Science-fiction', 'Documentaire'] },
+            { title: "13. Que pensez-vous de l’engagement en couple ?", choices: ['C’est important', 'Cela dépend des personnes', 'Je ne crois pas à l’engagement'] },
+            { title: "14. Quel genre de cuisine préférez-vous ?", choices: ['Italienne', 'Chinoise', 'Française', 'Mexicaine', 'Autre'] },
+            { title: "15. Vous êtes plutôt matin ou soir ?", choices: ['Matin', 'Soir', 'Les deux'] },
+            { title: "16. Avez-vous un hobby créatif ?", choices: ['Oui', 'Non', 'Peut-être'] },
+            { title: "17. Préférez-vous la ville ou la campagne ?", choices: ['Ville', 'Campagne'] },
+            { title: "18. Quel genre de musique aimez-vous ?", choices: ['Pop', 'Rock', 'Classique', 'Hip-hop/Rap', 'Électronique'] },
+            { title: "19. Vision de l’amour", choices: ['L’amour est essentiel et doit être vécu pleinement', 'L’amour est important, mais je pense que l’on peut être heureux sans', 'Je crois en un amour libre et sans attaches', 'Je pense que l’amour est une notion floue et changeante'] },
+            { title: "20. Décrivez votre personnalité en trois mots", choices: ['Optimiste, sociable, ambitieux(se)', 'Réfléchi(e), calme, indépendant(e)', 'Créatif(ve), passionné(e), curieux(se)', 'Pratique, réaliste, déterminé(e)'] }
+        ];
+
+        let currentQuestionIndex = 0;
+        const answers = {};
+
+        const questionPopup = document.getElementById('questionPopup');
+        const questionTitle = document.getElementById('questionTitle');
+        const questionChoices = document.getElementById('questionChoices');
+        const startButton = document.getElementById('startButton');
+        const closePopup = document.getElementById('closePopup');
+        const questionForm = document.getElementById('questionForm');
+        const questionNumberField = document.getElementById('questionNumber');
+
+        function showQuestion() {
+            if (currentQuestionIndex < questions.length) {
+                questionTitle.textContent = questions[currentQuestionIndex].title;
+                questionChoices.innerHTML = '';
+                questions[currentQuestionIndex].choices.forEach((choice, index) => {
+                    const choiceElement = document.createElement('div');
+                    choiceElement.classList.add('form-check');
+                    choiceElement.innerHTML = `
+                        <input class="form-check-input" type="radio" name="q${currentQuestionIndex + 1}" id="choice${index}" value="${choice}">
+                        <label class="form-check-label" for="choice${index}">${choice}</label>
+                    `;
+                    questionChoices.appendChild(choiceElement);
+                });
+                questionPopup.style.display = 'block';
+                questionNumberField.value = currentQuestionIndex + 1;
+            } else {
+                alert('Vous avez terminé le questionnaire !');
+                questionPopup.style.display = 'none';
+
+                sendAnswersToServer();
+            }
+        }
+
+        function sendAnswersToServer() {
+            const formData = new FormData();
+            for (const [key, value] of Object.entries(answers)) {
+                formData.append(key, value);
+            }
+
+            fetch('{{ path("questionnaire") }}', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '{{ path("home") }}';
+                } else {
+                    alert('Une erreur s\'est produite lors de l\'envoi des réponses.');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+            });
+        }
+
+        questionForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const selectedAnswer = document.querySelector(`input[name="q${currentQuestionIndex + 1}"]:checked`);
+            if (!selectedAnswer) {
+                alert('Veuillez sélectionner une réponse.');
+                return;
+            }
+
+            answers[`q${currentQuestionIndex + 1}`] = selectedAnswer.value;
+
+            currentQuestionIndex++;
+            showQuestion();
+        });
+
+        startButton.addEventListener('click', function() {
+            startButton.style.display = 'none';
+            showQuestion();
+        });
+
+        closePopup.addEventListener('click', function() {
+            questionPopup.style.display = 'none';
+        });
+    </script>
+
+    <style>
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        .popup-content {
+            width: 300px;
+            text-align: center;
+        }
+
+        .form-check {
+            margin-bottom: 10px;
+        }
+
+        .close-popup {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .close-popup:hover {
+            background-color: darkred;
+        }
+
+        button {
+            margin-top: 15px;
+        }
+    </style>
+{% endblock %}

@@ -22,7 +22,6 @@ class ProfileController extends AbstractController {
             return $this->redirectToRoute('login');
         }
         
-        // Récupère l'utilisateur par UUID
         $user = $dm->getRepository(User::class)->find($userData['id']);
         
         if (!$user) {
