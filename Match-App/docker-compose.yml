@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  ###> doctrine/doctrine-bundle ###
+
   database:
     image: postgres:${POSTGRES_VERSION:-16}-alpine
     environment:
@@ -17,9 +17,7 @@ services:
       - database_data:/var/lib/postgresql/data:rw
     ports:
       - "5432:5432"
-  ###< doctrine/doctrine-bundle ###
 
-  ###> symfony/mailer ###
   mailer:
     image: axllent/mailpit
     ports:
@@ -28,9 +26,7 @@ services:
     environment:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
-  ###< symfony/mailer ###
-
-  ###> symfony/mercure-bundle ###
+ 
   mercure:
     image: dunglas/mercure
     restart: unless-stopped
@@ -49,9 +45,7 @@ services:
       - "3000:80"
     volumes:
       - mercure_data:/data
-  ###< symfony/mercure-bundle ###
 
-  ###> Symfony App ###
   app:
     image: symfony-cli
     container_name: symfony_app
@@ -67,13 +61,7 @@ services:
     depends_on:
       - database
       - mercure
-  ###< Symfony App ###
 
 volumes:
-  ###> doctrine/doctrine-bundle ###
   database_data:
-  ###< doctrine/doctrine-bundle ###
-
-  ###> symfony/mercure-bundle ###
   mercure_data:
-  ###< symfony/mercure-bundle ###

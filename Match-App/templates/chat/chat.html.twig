@@ -17,7 +17,7 @@
         }
 
         body {
-            background-color: #f9fafb;
+            background-color: #f9fafb !important;
         }
 
         .chat-container {
@@ -57,17 +57,6 @@
             height: 100%;
             object-fit: cover;
             display: block;
-        }
-
-        .online-indicator {
-            height: 10px;
-            width: 10px;
-            background-color: #4CAF50;
-            border-radius: 50%;
-            border: 2px solid white;
-            position: absolute;
-            bottom: 0;
-            right: 0;
         }
 
         .chat-box {
@@ -236,7 +225,6 @@
             background-color: rgba(255, 255, 255, 0.3);
         }
 
-        /* Responsive adjustments */
         @media (max-width: 768px) {
             .chat-container {
                 margin: 0;
@@ -270,11 +258,9 @@
                         {% else %}
                             <img src="{{ asset('uploads/default.png') }}" alt="Photo par défaut">
                         {% endif %}
-                        <div class="online-indicator"></div>
                     </div>
                     <div>
                         <h5 class="mb-0 fw-bold">{{ partner.username }}</h5>
-                        <small class="text-white-50">En ligne</small>
                     </div>
                 </div>
                 <a href="{{ path('home') }}" class="btn home-button btn-sm text-white">
@@ -337,26 +323,32 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM fully loaded and parsed');
+        window.chatInitialized = window.chatInitialized || false;
+
+        function initChat() {
+            if (window.chatInitialized) {
+                if (window.chatEventSource) {
+                    window.chatEventSource.close();
+                    window.chatEventSource = null;
+                }
+            }
+            
+            window.chatInitialized = true;
 
             const chatBox = document.getElementById('chat-messages');
             const messageInput = document.getElementById('message-input');
             const sendButton = document.getElementById('send-button');
             const chatId = '{{ chat.id }}';
             const currentUserId = '{{ app.session.get('user').id }}';
-            const baseUploadPath = "{{ asset('uploads/') }}".replace('/uploads', '');
+            const baseUploadPath = "{{ app.request.schemeAndHttpHost }}";
             const defaultImagePath = "{{ asset('uploads/default.png') }}";
 
-            // Auto-scroll to bottom on page load
             scrollToBottom();
 
-            // Function to scroll to bottom of chat
             function scrollToBottom() {
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
 
-            // Function to create a message element
             function createMessageElement(message) {
                 const isCurrentUser = message.sender.id === currentUserId;
 
@@ -421,11 +413,8 @@
                 return messageContainer;
             }
 
-            // Function to send a message
             function sendMessage() {
-                console.log('sendMessage function called');
                 const content = messageInput.value.trim();
-                console.log('Content:', content);
                 if (!content) return;
 
                 fetch(`/chat/${chatId}/send`, {
@@ -436,25 +425,20 @@
                     body: JSON.stringify({ content })
                 })
                 .then(response => {
-                    console.log('Response status:', response.status);
                     if (!response.ok) {
                         return response.json().then(err => { throw new Error(err.error || 'Network response was not ok'); });
                     }
                     return response.json();
                 })
                 .then(data => {
-                    console.log('Message sent successfully:', data);
-                    // Clear input after successful send
                     messageInput.value = '';
                     messageInput.focus();
                 })
                 .catch(error => {
-                    console.error('Error sending message:', error);
                     alert('Erreur lors de l\'envoi du message. Veuillez réessayer.');
                 });
             }
 
-            // Function to delete a message
             function deleteMessage(messageId) {
                 fetch(`/message/${messageId}/delete`, {
                     method: 'DELETE'
@@ -466,22 +450,27 @@
                     return response.json();
                 })
                 .catch(error => {
-                    console.error('Error deleting message:', error);
                     alert('Erreur lors de la suppression du message. Veuillez réessayer.');
                 });
             }
 
-            // Event listeners
-            sendButton.addEventListener('click', sendMessage);
+            if (window.sendButtonHandler) {
+                sendButton.removeEventListener('click', window.sendButtonHandler);
+            }
+            if (window.messageInputHandler) {
+                messageInput.removeEventListener('keypress', window.messageInputHandler);
+            }
 
-            messageInput.addEventListener('keypress', function(event) {
-                console.log('Keypress event detected');
+            window.sendButtonHandler = sendMessage;
+            window.messageInputHandler = function(event) {
                 if (event.key === 'Enter') {
                     sendMessage();
                 }
-            });
+            };
 
-            // Attach event listeners to existing delete buttons
+            sendButton.addEventListener('click', window.sendButtonHandler);
+            messageInput.addEventListener('keypress', window.messageInputHandler);
+
             document.querySelectorAll('.delete-message').forEach(button => {
                 button.addEventListener('click', function() {
                     if (confirm('Supprimer ce message ?')) {
@@ -490,56 +479,100 @@
                 });
             });
 
-            // Set up Mercure connection
             const mercureUrl = new URL('{{ mercure_public_url }}');
             mercureUrl.searchParams.append('topic', `chat/${chatId}`);
 
-            const eventSource = new EventSource(mercureUrl);
+            if (window.chatEventSource) {
+                window.chatEventSource.close();
+                window.chatEventSource = null;
+            }
 
-            eventSource.onmessage = function(event) {
-                try {
-                    const data = JSON.parse(event.data);
+            setTimeout(() => {
+                window.chatEventSource = new EventSource(mercureUrl);
 
-                    // Handle message deletion
-                    if (data.action === 'delete') {
-                        const messageElement = document.querySelector(`[data-message-id="${data.messageId}"]`);
-                        if (messageElement) {
-                            messageElement.remove();
+                window.chatEventSource.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+
+                        if (data.action === 'delete') {
+                            const messageElement = document.querySelector(`[data-message-id="${data.messageId}"]`);
+                            if (messageElement) {
+                                messageElement.remove();
+                            }
+                            return;
                         }
-                        return;
+
+                        const messageElement = createMessageElement(data);
+                        chatBox.appendChild(messageElement);
+
+                        const emptyChat = document.querySelector('.empty-chat');
+                        if (emptyChat) {
+                            emptyChat.remove();
+                        }
+
+                        scrollToBottom();
+                    } catch (error) {
+                        
                     }
+                };
 
-                    // Handle new message
-                    const messageElement = createMessageElement(data);
-                    chatBox.appendChild(messageElement);
+                window.chatEventSource.onerror = function(error) {
+                    window.chatInitialized = false;
+                    
+                    setTimeout(() => {
+                        if (window.chatEventSource) {
+                            window.chatEventSource.close();
+                            window.chatEventSource = null;
+                        }
+                        
+                        initChat();
+                    }, 3000);
+                };
+            }, 100);
+        }
 
-                    // Remove empty chat message if present
-                    const emptyChat = document.querySelector('.empty-chat');
-                    if (emptyChat) {
-                        emptyChat.remove();
+        function setupChatObserver() {
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (document.querySelector('.chat-container') && !window.chatInitialized) {
+                        initChat();
                     }
+                });
+            });
+            
+            observer.observe(document.body, { childList: true, subtree: true });
+            
+            window.chatObserver = observer;
+            
+            if (document.querySelector('.chat-container')) {
+                initChat();
+            }
+        }
 
-                    // Scroll to bottom to show new message
-                    scrollToBottom();
-                } catch (error) {
-                    console.error('Error processing message:', error);
-                }
-            };
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupChatObserver);
+        } else {
+            setupChatObserver();
+        }
 
-            eventSource.onerror = function(error) {
-                console.error('EventSource error:', error);
-                // Attempt to reconnect after a short delay
-                setTimeout(() => {
-                    eventSource.close();
-                    // Reconnection logic
-                    const newEventSource = new EventSource(mercureUrl);
-                    newEventSource.onmessage = eventSource.onmessage;
-                    newEventSource.onerror = eventSource.onerror;
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible' && document.querySelector('.chat-container') && !window.chatInitialized) {
+                initChat();
+            }
+        });
 
-                    // Update the reference
-                    eventSource = newEventSource;
-                }, 3000);
-            };
+        window.addEventListener('beforeunload', function() {
+            if (window.chatEventSource) {
+                window.chatEventSource.close();
+                window.chatEventSource = null;
+            }
+            
+            if (window.chatObserver) {
+                window.chatObserver.disconnect();
+                window.chatObserver = null;
+            }
+            
+            window.chatInitialized = false;
         });
     </script>
 {% endblock %}
