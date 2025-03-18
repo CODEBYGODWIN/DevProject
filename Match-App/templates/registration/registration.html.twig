@@ -6,7 +6,7 @@
     <div class="container">
         <h1>Registration</h1>
         
-        {{ form_start(form, {'attr': {'id': 'registration-form', 'onsubmit': 'return validateForm(event)'}}) }}
+        {{ form_start(form, {'attr': {'id': 'registration-form', 'novalidate': 'novalidate'}}) }}
             <div class="form-group">
                 {{ form_row(form.email, {'attr': {'class': 'form-control'}}) }}
                 <div class="invalid-feedback" id="email-error"></div>
@@ -35,8 +35,13 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-        function validateForm(event) {
-            event.preventDefault();
+        document.getElementById('registration-form').addEventListener('submit', function(event) {
+            if (!validateForm()) {
+                event.preventDefault();
+            }
+        });
+
+        function validateForm() {
             let isValid = true;
 
             // Reset error messages
@@ -78,11 +83,7 @@
                 showError('birthdate', 'Vous devez avoir au moins 18 ans pour vous inscrire');
                 isValid = false;
             }
-
-            if (isValid) {
-                document.getElementById('registration-form').submit();
-            }
-
+            
             return isValid;
         }
 
