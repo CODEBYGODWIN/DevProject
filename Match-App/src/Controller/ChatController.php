@@ -17,6 +17,13 @@ use Symfony\Component\Mercure\Update;
 
 class ChatController extends AbstractController
 {
+    private HubInterface $hub;
+    
+    public function __construct(HubInterface $hub)
+    {
+        $this->hub = $hub;
+    }
+
     #[Route('/chat/start/{userId}', name: 'start_chat', methods: ['GET'])]
     public function startChat(string $userId, DocumentManager $dm, SessionInterface $session): Response
     {
@@ -67,6 +74,35 @@ class ChatController extends AbstractController
             return $this->redirectToRoute('home');
         }
 
+        $currentUserEntity = $dm->getRepository(User::class)->find($currentUser['id']);
+        $partner = ($chat->getUser1()->getId() === $currentUser['id']) 
+            ? $chat->getUser2() : $chat->getUser1();
+        
+        $unreadMessages = $dm->createQueryBuilder(Message::class)
+            ->field('chat')->references($chat)
+            ->field('sender')->references($partner)
+            ->field('read')->equals(false)
+            ->getQuery()
+            ->execute();
+        
+        foreach ($unreadMessages as $message) {
+            $message->setRead(true);
+            $dm->persist($message);
+        }
+        
+        $dm->flush();
+        
+        if ($this->getParameter('mercure.public_url')) {
+            $update = new Update(
+                'chat/' . $chatId,
+                json_encode([
+                    'action' => 'read_all',
+                    'reader' => $currentUser['id']
+                ])
+            );
+            $this->hub->publish($update);
+        }
+
         $messages = $dm->getRepository(Message::class)->findBy(['chat' => $chat], ['timestamp' => 'ASC']);
 
         return $this->render('chat/chat.html.twig', [
@@ -77,7 +113,7 @@ class ChatController extends AbstractController
     }
 
     #[Route('/chat/{chatId}/send', name: 'send_message', methods: ['POST'])]
-    public function sendMessage(string $chatId, Request $request, DocumentManager $dm, SessionInterface $session, HubInterface $hub): JsonResponse
+    public function sendMessage(string $chatId, Request $request, DocumentManager $dm, SessionInterface $session): JsonResponse
     {
         $currentUser = $session->get('user');
         if (!$currentUser) {
@@ -109,6 +145,7 @@ class ChatController extends AbstractController
                 'picture' => $sender->getPicture() ?: 'default.png',
             ],
             'timestamp' => $message->getTimestamp()->format('H:i'),
+            'chatId' => $chatId
         ];
 
         $update = new Update(
@@ -116,13 +153,13 @@ class ChatController extends AbstractController
             json_encode($messageData)
         );
         
-        $hub->publish($update);
+        $this->hub->publish($update);
 
         return new JsonResponse($messageData);
     }
 
     #[Route('/message/{messageId}/delete', name: 'delete_message', methods: ['DELETE'])]
-    public function deleteMessage(string $messageId, DocumentManager $dm, SessionInterface $session, HubInterface $hub): JsonResponse
+    public function deleteMessage(string $messageId, DocumentManager $dm, SessionInterface $session): JsonResponse
     {
         $currentUser = $session->get('user');
         if (!$currentUser) {
@@ -139,7 +176,9 @@ class ChatController extends AbstractController
         }
 
         $chatId = $message->getChat()->getId();
-        
+        $wasUnread = !$message->isRead();
+        $senderId = $message->getSender()->getId();
+
         $dm->remove($message);
         $dm->flush();
 
@@ -147,11 +186,58 @@ class ChatController extends AbstractController
             'chat/' . $chatId,
             json_encode([
                 'action' => 'delete',
-                'messageId' => $messageId
+                'messageId' => $messageId,
+                'wasUnread' => $wasUnread,
+                'sender' => $senderId
             ])
         );
         
-        $hub->publish($update);
+        $this->hub->publish($update);
+
+        return new JsonResponse(['success' => true]);
+    }
+
+    #[Route('/chat/{chatId}/read', name: 'mark_chat_read', methods: ['POST'])]
+    public function markChatAsRead(string $chatId, DocumentManager $dm, SessionInterface $session): JsonResponse
+    {
+        $currentUser = $session->get('user');
+        if (!$currentUser) {
+            return new JsonResponse(['error' => 'Not authenticated'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $chat = $dm->getRepository(Chat::class)->find($chatId);
+        if (!$chat) {
+            return new JsonResponse(['error' => 'Chat not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $currentUserEntity = $dm->getRepository(User::class)->find($currentUser['id']);
+        $partner = ($chat->getUser1()->getId() === $currentUser['id']) 
+            ? $chat->getUser2() : $chat->getUser1();
+        
+        $unreadMessages = $dm->createQueryBuilder(Message::class)
+            ->field('chat')->references($chat)
+            ->field('sender')->references($partner)
+            ->field('read')->equals(false)
+            ->getQuery()
+            ->execute();
+        
+        foreach ($unreadMessages as $message) {
+            $message->setRead(true);
+            $dm->persist($message);
+        }
+        
+        $dm->flush();
+        
+        if ($this->getParameter('mercure.public_url')) {
+            $update = new Update(
+                'chat/' . $chatId,
+                json_encode([
+                    'action' => 'read_all',
+                    'reader' => $currentUser['id']
+                ])
+            );
+            $this->hub->publish($update);
+        }
 
         return new JsonResponse(['success' => true]);
     }

@@ -32,24 +32,18 @@
             <div class="row mb-4">
                 <div class="col">
                     <h2 class="section-title">Conversations en cours</h2>
-                    <div class="chat-list">
+                    <div class="conversations-list d-flex flex-wrap">
                         {% for chat in chats %}
-                            <a href="{{ path('chat_view', {'chatId': chat.id}) }}" class="chat-item d-flex align-items-center p-3 text-decoration-none text-dark bg-white">
-                                <div class="avatar me-3">
+                            <a href="{{ path('chat_view', {'chatId': chat.id}) }}" class="conversation-item text-center mx-2 mb-3 position-relative">
+                                <div class="conversation-avatar">
                                     {% if chat.partner.picture %}
                                         <img src="{{ asset('uploads/' ~ chat.partner.picture) }}" alt="{{ chat.partner.username }}">
                                     {% else %}
                                         <img src="{{ asset('uploads/default.png') }}" alt="Photo par défaut">
                                     {% endif %}
                                 </div>
-                                <div class="chat-info">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0 fw-bold">{{ chat.partner.username }}</h5>
-                                    </div>
-                                    <p class="chat-message mb-0">
-                                        <span class="text-muted">Cliquez pour voir la conversation</span>
-                                    </p>
-                                </div>
+                                <div class="unread-counter" id="unread-{{ chat.id }}" style="display: {{ chat.unreadCount > 0 ? 'flex' : 'none' }};">{{ chat.unreadCount }}</div>
+                                <p class="conversation-name mt-2 mb-0">{{ chat.partner.username }}</p>
                             </a>
                         {% endfor %}
                     </div>
@@ -127,4 +121,120 @@
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        window.homeInitialized = false;
+        window.homeInitializationInProgress = false;
+
+        function initHome() {
+            if (window.homeInitialized || window.homeInitializationInProgress) {
+                return;
+            }
+            
+            window.homeInitializationInProgress = true;
+            
+            if (window.homeEventSource) {
+                window.homeEventSource.close();
+                window.homeEventSource = null;
+            }
+            
+            const currentUserId = '{{ user.id }}';
+            const mercureUrl = new URL('{{ mercure_public_url }}');
+            
+            {% for chat in chats %}
+                mercureUrl.searchParams.append('topic', 'chat/{{ chat.id }}');
+            {% endfor %}
+            
+            if ('{{ chats|length }}' > 0) {
+                window.homeEventSource = new EventSource(mercureUrl);
+                
+                window.homeEventSource.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        const chatId = data.chatId || event.lastEventId.split('/').pop();
+                        const unreadCounter = document.getElementById('unread-' + chatId);
+                        
+                        if (!unreadCounter) return;
+                        
+                        if (data.action === 'delete') {
+                            // Amélioration ici pour vérifier correctement si le message supprimé était non lu
+                            if (data.wasUnread === true && data.sender !== currentUserId) {
+                                const currentCount = parseInt(unreadCounter.textContent) || 0;
+                                if (currentCount > 0) {
+                                    const newCount = currentCount - 1;
+                                    unreadCounter.textContent = newCount;
+                                    unreadCounter.style.display = newCount > 0 ? 'flex' : 'none';
+                                    
+                                    // Log pour le débogage
+                                    console.log('Message non lu supprimé, compteur mis à jour:', newCount);
+                                }
+                            }
+                        } else if (data.action === 'read_all') {
+                            if (data.reader === currentUserId) {
+                                unreadCounter.textContent = '0';
+                                unreadCounter.style.display = 'none';
+                            }
+                        } else if (data.sender && data.sender.id !== currentUserId) {
+                            unreadCounter.style.display = 'flex';
+                            const currentCount = parseInt(unreadCounter.textContent) || 0;
+                            unreadCounter.textContent = currentCount + 1;
+                        }
+                    } catch (error) {
+                        console.error('Error processing message:', error);
+                    }
+                };
+                
+                window.homeEventSource.onerror = function(error) {
+                    window.homeInitialized = false;
+                    window.homeInitializationInProgress = false;
+                    
+                    if (window.homeEventSource) {
+                        window.homeEventSource.close();
+                        window.homeEventSource = null;
+                    }
+                    
+                    setTimeout(() => {
+                        if (!window.homeInitialized && !window.homeInitializationInProgress && document.querySelector('.container')) {
+                            initHome();
+                        }
+                    }, 3000);
+                };
+                
+                document.querySelectorAll('.conversation-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const chatId = this.getAttribute('href').split('/').pop();
+                        const unreadCounter = document.getElementById('unread-' + chatId);
+                        if (unreadCounter) {
+                            unreadCounter.style.display = 'none';
+                            unreadCounter.textContent = '0';
+                        }
+                    });
+                });
+            }
+            
+            window.homeInitialized = true;
+            window.homeInitializationInProgress = false;
+        }
+
+        initHome();
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible' && document.querySelector('.container') && !window.homeInitialized) {
+                initHome();
+            }
+        });
+
+        window.addEventListener('beforeunload', function() {
+            if (window.homeEventSource) {
+                window.homeEventSource.close();
+                window.homeEventSource = null;
+            }
+            
+            window.homeInitialized = false;
+            window.homeInitializationInProgress = false;
+        });
+    </script>
 {% endblock %}

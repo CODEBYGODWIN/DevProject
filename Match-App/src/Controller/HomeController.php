@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Document\User;
 use App\Document\Chat;
+use App\Document\Message;
 use App\Service\MatchingService;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -39,22 +40,26 @@ class HomeController extends AbstractController {
         ]);
         
         $chatPartnerIds = [];
-        foreach ($chats as $chat) {
-            if ($chat->getUser1()->getId() === $userEntity->getId()) {
-                $chatPartnerIds[] = $chat->getUser2()->getId();
-            } else {
-                $chatPartnerIds[] = $chat->getUser1()->getId();
-            }
-        }
-        
         $formattedChats = [];
+
         foreach ($chats as $chat) {
             $partner = ($chat->getUser1()->getId() === $userEntity->getId()) 
                 ? $chat->getUser2() : $chat->getUser1();
             
+            $chatPartnerIds[] = $partner->getId();
+            
+            $unreadCount = $dm->createQueryBuilder(Message::class)
+                ->field('chat')->references($chat)
+                ->field('sender')->references($partner)
+                ->field('read')->equals(false)
+                ->count()
+                ->getQuery()
+                ->execute();
+            
             $formattedChats[] = [
                 'id' => $chat->getId(),
-                'partner' => $partner
+                'partner' => $partner,
+                'unreadCount' => $unreadCount
             ];
         }
         
@@ -77,7 +82,8 @@ class HomeController extends AbstractController {
             'user' => $userEntity,
             'matches' => $matchesWithPercentage,
             'goal' => $userEntity->getInou()->getQ2(),
-            'chats' => $formattedChats
+            'chats' => $formattedChats,
+            'mercure_public_url' => $this->getParameter('mercure.public_url')
         ]);
     }
     

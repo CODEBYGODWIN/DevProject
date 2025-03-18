@@ -24,6 +24,9 @@ class Message
     #[Assert\NotBlank]
     private string $content;
 
+    #[MongoDB\Field(type: "bool")]
+    private bool $read = false;
+
     #[MongoDB\Field(type: "date")]
     private ?\DateTime $timestamp = null;
 
@@ -46,6 +49,9 @@ class Message
 
     public function getContent(): string { return $this->content; }
     public function setContent(string $content): self { $this->content = $content; return $this; }
+
+    public function isRead(): bool { return $this->read; }
+    public function setRead(bool $read): self { $this->read = $read; return $this; }
 
     public function getTimestamp(): ?\DateTime { return $this->timestamp; }
 }

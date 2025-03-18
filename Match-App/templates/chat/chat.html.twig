@@ -217,6 +217,24 @@
                     alert('Erreur lors de la suppression du message. Veuillez réessayer.');
                 });
             }
+            
+            function markMessagesAsRead() {
+                fetch(`/chat/${chatId}/read`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .catch(error => {
+                    console.error('Erreur lors du marquage des messages comme lus', error);
+                });
+            }
 
             if (window.sendButtonHandler) {
                 sendButton.removeEventListener('click', window.sendButtonHandler);
@@ -234,7 +252,6 @@
 
             sendButton.addEventListener('click', window.sendButtonHandler);
             messageInput.addEventListener('keypress', window.messageInputHandler);
-
             document.querySelectorAll('.delete-message').forEach(button => {
                 button.addEventListener('click', function() {
                     if (confirm('Supprimer ce message ?')) {
@@ -245,9 +262,7 @@
 
             const mercureUrl = new URL('{{ mercure_public_url }}');
             mercureUrl.searchParams.append('topic', `chat/${chatId}`);
-
             window.chatEventSource = new EventSource(mercureUrl);
-
             window.chatEventSource.onmessage = function(event) {
                 try {
                     const data = JSON.parse(event.data);
@@ -259,6 +274,10 @@
                         }
                         return;
                     }
+                    
+                    if (data.sender && data.sender.id !== currentUserId) {
+                        markMessagesAsRead();
+                    }
 
                     const messageElement = createMessageElement(data);
                     chatBox.appendChild(messageElement);
@@ -269,7 +288,9 @@
                     }
 
                     scrollToBottom();
-                } catch (error) {}
+                } catch (error) {
+                    console.error('Error processing message:', error);
+                }
             };
 
             window.chatEventSource.onerror = function(error) {
@@ -288,6 +309,8 @@
                 }, 3000);
             };
         
+            markMessagesAsRead();
+            
             window.chatInitialized = true;
             window.chatInitializationInProgress = false;
         }
@@ -295,8 +318,18 @@
         initChat();
 
         document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'visible' && document.querySelector('.chat-container') && !window.chatInitialized) {
-                initChat();
+            if (document.visibilityState === 'visible' && document.querySelector('.chat-container')) {
+                if(!window.chatInitialized) {
+                    initChat();
+                } else {
+                    const chatId = '{{ chat.id }}';
+                    fetch(`/chat/${chatId}/read`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                }
             }
         });
 
