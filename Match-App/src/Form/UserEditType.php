@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Form;
 
 use Symfony\Component\Form\AbstractType;
@@ -27,32 +26,44 @@ class UserEditType extends AbstractType
         $builder
             ->add('email', EmailType::class, [
                 'constraints' => [
-                    new NotBlank(),
-                    new Email(),
-                    new Length(['min' => 8]),
+                    new NotBlank(['message' => "L'email est requis"]),
+                    new Email(['message' => "L'email n'est pas valide"]),
+                    new Length([
+                        'min' => 8,
+                        'minMessage' => "L'email doit avoir au moins 8 caractères",
+                    ]),
                 ],
             ])
             ->add('password', PasswordType::class, [
                 'constraints' => [
-                    new NotBlank(),
-                    new Length(['min' => 8]),
+                    new NotBlank(['message' => "Le mot de passe est requis"]),
+                    new Length([
+                        'min' => 8,
+                        'minMessage' => "Le mot de passe doit contenir au moins 8 caractères",
+                    ]),
                     new Regex([
                         'pattern' => '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/',
-                        'message' => 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial',
+                        'message' => "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial",
                     ]),
                 ],
             ])
             ->add('username', TextType::class, [
                 'constraints' => [
-                    new NotBlank(),
-                    new Length(['min' => 6]),
+                    new NotBlank(['message' => "Le nom d'utilisateur est requis"]),
+                    new Length([
+                        'min' => 6,
+                        'minMessage' => "Le nom d'utilisateur doit avoir au moins 6 caractères",
+                    ]),
                 ],
             ])
             ->add('birthdate', DateType::class, [
                 'widget' => 'single_text',
                 'constraints' => [
-                    new NotBlank(),
-                    new LessThanOrEqual('-18 years'),
+                    new NotBlank(['message' => "La date de naissance est requise"]),
+                    new LessThanOrEqual([
+                        'value' => '-18 years',
+                        'message' => "Vous devez avoir au moins 18 ans pour vous inscrire",
+                    ]),
                 ],
             ])
             ->add('gender', ChoiceType::class, [

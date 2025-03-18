@@ -1,27 +1,116 @@
 {% extends 'base.html.twig' %}
 
-
 {% block title %}Registration{% endblock %}
 
 {% block body %}
     <div class="container">
         <h1>Registration</h1>
         
-  
-        {{ form_start(form) }}
-            <p>L'email doit avoir au moins 8 caractères</p>
-            {{ form_row(form.email) }}
-            
-           <p>Le nom d'utilisateur doit avoir au moins 6 caractères</p>
-            {{ form_row(form.username) }}
-            <p>Le mot de passe doit avoir au moins 8 caractères avec au moins une majuscule, une minuscule, un chiffre et un caractère spécial</p>
-            {{ form_row(form.password) }}
-            <p>Vous devez avoir au moins 18 ans pour vous inscrire</p>
-            {{ form_row(form.birthdate) }}
+        {{ form_start(form, {'attr': {'id': 'registration-form', 'onsubmit': 'return validateForm(event)'}}) }}
+            <div class="form-group">
+                {{ form_row(form.email, {'attr': {'class': 'form-control'}}) }}
+                <div class="invalid-feedback" id="email-error"></div>
+            </div>
+            <div class="form-group">
+                {{ form_row(form.username, {'attr': {'class': 'form-control'}}) }}
+                <div class="invalid-feedback" id="username-error"></div>
+            </div>
+            <div class="form-group">
+                {{ form_row(form.password, {'attr': {'class': 'form-control'}}) }}
+                <div class="invalid-feedback" id="password-error"></div>
+            </div>
+            <div class="form-group">
+                {{ form_row(form.birthdate, {'attr': {'class': 'form-control'}}) }}
+                <div class="invalid-feedback" id="birthdate-error"></div>
+            </div>
             {{ form_row(form.gender) }}
             {{ form_row(form.bio) }}
             {{form_row(form.picture)}}
+            {{ form_row(form.save) }}
         {{ form_end(form) }}
         <button type="submit"><a href="{{ path('login') }}">Se connecter</a></button>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function validateForm(event) {
+            event.preventDefault();
+            let isValid = true;
+
+            // Reset error messages
+            document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+            document.querySelectorAll('.form-control').forEach(el => el.classList.remove('is-invalid'));
+
+            // Email validation
+            const email = document.querySelector('#{{ form.email.vars.id }}').value;
+            if (email.length < 8) {
+                showError('email', 'L\'email doit contenir au moins 8 caractères');
+                isValid = false;
+            }
+
+            // Username validation
+            const username = document.querySelector('#{{ form.username.vars.id }}').value;
+            if (username.length < 6) {
+                showError('username', 'Le nom d\'utilisateur doit contenir au moins 6 caractères');
+                isValid = false;
+            }
+
+            // Password validation
+            const password = document.querySelector('#{{ form.password.vars.id }}').value;
+            if (!validatePassword(password)) {
+                showError('password', 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un caractère spécial');
+                isValid = false;
+            }
+
+            // Birthdate validation
+            const birthdate = new Date(document.querySelector('#{{ form.birthdate.vars.id }}').value);
+            const today = new Date();
+            const age = today.getFullYear() - birthdate.getFullYear();
+            const monthDiff = today.getMonth() - birthdate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthdate.getDate())) {
+                age--;
+            }
+
+            if (age < 18) {
+                showError('birthdate', 'Vous devez avoir au moins 18 ans pour vous inscrire');
+                isValid = false;
+            }
+
+            if (isValid) {
+                document.getElementById('registration-form').submit();
+            }
+
+            return isValid;
+        }
+
+        function validatePassword(password) {
+            const minLength = 8;
+            const hasUpperCase = /[A-Z]/.test(password);
+            const hasLowerCase = /[a-z]/.test(password);
+            const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+            
+            return password.length >= minLength && hasUpperCase && hasLowerCase && hasSpecialChar;
+        }
+
+        function showError(fieldName, message) {
+            const errorDiv = document.getElementById(`${fieldName}-error`);
+            const input = document.querySelector(`#{{ form.vars.id }}_${fieldName}`);
+            errorDiv.textContent = message;
+            input.classList.add('is-invalid');
+        }
+    </script>
+
+    <style>
+        .invalid-feedback {
+            display: block;
+            color: red;
+            margin-top: 5px;
+        }
+        .form-control.is-invalid {
+            border-color: red;
+        }
+    </style>
 {% endblock %}
