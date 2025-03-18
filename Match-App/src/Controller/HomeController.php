@@ -47,35 +47,14 @@ class HomeController extends AbstractController {
             }
         }
         
-        usort($chats, function($a, $b) {
-            $aMessages = $a->getMessages();
-            $bMessages = $b->getMessages();
-            
-            if (empty($aMessages)) return 1;
-            if (empty($bMessages)) return -1;
-            
-            $aLastMessage = end($aMessages);
-            $bLastMessage = end($bMessages);
-            
-            return strtotime($bLastMessage['timestamp']) - strtotime($aLastMessage['timestamp']);
-        });
-        
         $formattedChats = [];
         foreach ($chats as $chat) {
             $partner = ($chat->getUser1()->getId() === $userEntity->getId()) 
                 ? $chat->getUser2() : $chat->getUser1();
             
-            $messages = $chat->getMessages();
-            $lastMessage = !empty($messages) ? end($messages) : null;
-            
             $formattedChats[] = [
                 'id' => $chat->getId(),
-                'partner' => $partner,
-                'lastMessage' => $lastMessage ? [
-                    'content' => $lastMessage['content'],
-                    'timestamp' => $lastMessage['timestamp'],
-                    'isFromCurrentUser' => $lastMessage['sender'] === $userEntity->getId()
-                ] : null
+                'partner' => $partner
             ];
         }
         

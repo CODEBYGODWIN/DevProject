@@ -32,12 +32,12 @@ class ChatController extends AbstractController
             return $this->redirectToRoute('home');
         }
 
-        // Try to find existing chat between these users
-        $existingChat = $dm->createQueryBuilder(Chat::class)
-            ->addOr($dm->expr()->field('user1')->equals($user1)->field('user2')->equals($user2))
-            ->addOr($dm->expr()->field('user1')->equals($user2)->field('user2')->equals($user1))
-            ->getQuery()
-            ->getSingleResult();
+        $existingChat = $dm->getRepository(Chat::class)->findOneBy([
+            '$or' => [
+                ['user1' => $user1, 'user2' => $user2],
+                ['user1' => $user2, 'user2' => $user1]
+            ]
+        ]);
 
         if (!$existingChat) {
             $chat = new Chat($user1, $user2);
@@ -63,7 +63,6 @@ class ChatController extends AbstractController
             return $this->redirectToRoute('home');
         }
 
-        // Check if current user is part of this chat
         if ($chat->getUser1()->getId() !== $currentUser['id'] && $chat->getUser2()->getId() !== $currentUser['id']) {
             return $this->redirectToRoute('home');
         }
@@ -112,7 +111,6 @@ class ChatController extends AbstractController
             'timestamp' => $message->getTimestamp()->format('H:i'),
         ];
 
-        // Publish update to Mercure
         $update = new Update(
             'chat/' . $chatId,
             json_encode($messageData)
@@ -136,7 +134,6 @@ class ChatController extends AbstractController
             return new JsonResponse(['error' => 'Message not found'], Response::HTTP_NOT_FOUND);
         }
 
-        // Only allow deletion of own messages
         if ($message->getSender()->getId() !== $currentUser['id']) {
             return new JsonResponse(['error' => 'Permission denied'], Response::HTTP_FORBIDDEN);
         }
@@ -146,7 +143,6 @@ class ChatController extends AbstractController
         $dm->remove($message);
         $dm->flush();
 
-        // Notify clients that message has been deleted
         $update = new Update(
             'chat/' . $chatId,
             json_encode([
