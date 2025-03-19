@@ -39,7 +39,7 @@ class UserEditType extends AbstractType
                 'data_class' => null, 
             ])
             
-            ->add('save', SubmitType::class, ['label' => 'Créer un compte']);
+            ->add('save', SubmitType::class, ['label' => 'Modifier']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
