@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+
+  database:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+    ports:
+      - "5432:5432"
+
+  mailer:
+    image: axllent/mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+ 
+  mercure:
+    image: dunglas/mercure
+    restart: unless-stopped
+    environment:
+      SERVER_NAME: ':80'
+      MERCURE_PUBLISHER_JWT_KEY: '${MERCURE_JWT_SECRET:-ThisIsASecureKeyWithAtLeast32Characters123}'
+      MERCURE_PUBLISHER_JWT_ALG: 'HS256'
+      MERCURE_SUBSCRIBER_JWT_KEY: '${MERCURE_JWT_SECRET:-ThisIsASecureKeyWithAtLeast32Characters123}'
+      MERCURE_SUBSCRIBER_JWT_ALG: 'HS256'
+      MERCURE_EXTRA_DIRECTIVES: |
+        cors_origins *
+        publish_origins *
+        anonymous
+        subscriptions
+    ports:
+      - "3000:80"
+    volumes:
+      - mercure_data:/data
+
+  app:
+    image: symfony-cli
+    container_name: symfony_app
+    working_dir: /app
+    environment:
+      MERCURE_URL: 'http://mercure/.well-known/mercure'
+      MERCURE_PUBLIC_URL: 'http://localhost:3000/.well-known/mercure'
+      MERCURE_JWT_SECRET: 'ThisIsASecureKeyWithAtLeast32Characters123'
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - database
+      - mercure
+
+volumes:
+  database_data:
+  mercure_data:

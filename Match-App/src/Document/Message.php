@@ -24,15 +24,26 @@ class Message
     #[Assert\NotBlank]
     private string $content;
 
+    #[MongoDB\Field(type: "string")]
+    private ?string $type = 'text';
+
+    #[MongoDB\Field(type: "string")]
+    private ?string $audioUrl = null;
+
+    #[MongoDB\Field(type: "bool")]
+    private bool $read = false;
+
     #[MongoDB\Field(type: "date")]
     private ?\DateTime $timestamp = null;
 
-    public function __construct(Chat $chat, User $sender, string $content)
+    public function __construct(Chat $chat, User $sender, string $content, string $type = 'text', ?string $audioUrl = null)
     {
         $this->id = Uuid::v4()->toRfc4122();
         $this->chat = $chat;
         $this->sender = $sender;
         $this->content = $content;
+        $this->type = $type;
+        $this->audioUrl = $audioUrl;
         $this->timestamp = new \DateTime();
     }
 
@@ -46,6 +57,15 @@ class Message
 
     public function getContent(): string { return $this->content; }
     public function setContent(string $content): self { $this->content = $content; return $this; }
+
+    public function getType(): string { return $this->type; }
+    public function setType(string $type): self { $this->type = $type; return $this; }
+
+    public function getAudioUrl(): ?string { return $this->audioUrl; }
+    public function setAudioUrl(?string $audioUrl): self { $this->audioUrl = $audioUrl; return $this; }
+
+    public function isRead(): bool { return $this->read; }
+    public function setRead(bool $read): self { $this->read = $read; return $this; }
 
     public function getTimestamp(): ?\DateTime { return $this->timestamp; }
 }

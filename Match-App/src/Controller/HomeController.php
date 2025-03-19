@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Document\User;
+use App\Document\Chat;
+use App\Document\Message;
 use App\Service\MatchingService;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,9 +32,40 @@ class HomeController extends AbstractController {
             return $this->redirectToRoute('questionnaire');
         }
         
+        $chats = $dm->getRepository(Chat::class)->findBy([
+            '$or' => [
+                ['user1' => $userEntity],
+                ['user2' => $userEntity]
+            ]
+        ]);
+        
+        $chatPartnerIds = [];
+        $formattedChats = [];
+
+        foreach ($chats as $chat) {
+            $partner = ($chat->getUser1()->getId() === $userEntity->getId()) 
+                ? $chat->getUser2() : $chat->getUser1();
+            
+            $chatPartnerIds[] = $partner->getId();
+            
+            $unreadCount = $dm->createQueryBuilder(Message::class)
+                ->field('chat')->references($chat)
+                ->field('sender')->references($partner)
+                ->field('read')->equals(false)
+                ->count()
+                ->getQuery()
+                ->execute();
+            
+            $formattedChats[] = [
+                'id' => $chat->getId(),
+                'partner' => $partner,
+                'unreadCount' => $unreadCount
+            ];
+        }
+        
         $matches = $matchingService->findMatches($userEntity);
         
-        $matchesWithPercentage = array_map(function($match) {
+        $matchesWithPercentage = array_map(function($match) use ($chatPartnerIds) {
             $percentage = ($match['affinity'] / 18) * 100;
             
             return [
@@ -40,14 +73,17 @@ class HomeController extends AbstractController {
                 'affinity' => $match['affinity'],
                 'percentage' => round($percentage, 1),
                 'colorClass' => $this->getColorClass($percentage),
-                'isRomanticMatch' => $match['isRomanticMatch'] ?? false
+                'isRomanticMatch' => $match['isRomanticMatch'] ?? false,
+                'hasChat' => in_array($match['user']->getId(), $chatPartnerIds)
             ];
         }, $matches);
         
         return $this->render('home/home.html.twig', [
             'user' => $userEntity,
             'matches' => $matchesWithPercentage,
-            'goal' => $userEntity->getInou()->getQ2()
+            'goal' => $userEntity->getInou()->getQ2(),
+            'chats' => $formattedChats,
+            'mercure_public_url' => $this->getParameter('mercure.public_url')
         ]);
     }
     

@@ -1,0 +1,299 @@
+:root {
+    --primary-color: #6e8efb;
+    --secondary-color: #a777e3;
+    --accent-color: #2979ff;
+    --danger-color: #ec38bc;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+    --border-radius: 12px;
+    --transition: all 0.25s ease;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+  
+.chat-page-container {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+  
+.chat-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 2rem auto;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    background-color: white;
+    height: calc(100vh - 4rem);
+    display: flex;
+    flex-direction: column;
+}
+  
+.chat-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    padding: 1rem 1.5rem;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+  
+.partner-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+  
+.avatar {
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    background-color: #f0f0f0;
+}
+  
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+  
+.chat-box {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #f5f7fa;
+    padding: 1.5rem;
+    scroll-behavior: smooth;
+}
+  
+.message-container {
+    display: flex;
+    margin-bottom: 1rem;
+    align-items: flex-end;
+}
+  
+.message-container.current-user {
+    justify-content: flex-end;
+}
+  
+.message-bubble {
+    border-radius: 18px;
+    padding: 0.75rem 1rem;
+    max-width: 70%;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+    word-break: break-word;
+    animation: fadeIn 0.2s ease-out;
+}
+  
+@keyframes fadeIn {
+    from { 
+      opacity: 0; 
+      transform: translateY(10px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+}
+  
+.message-bubble.current-user {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+  
+.message-bubble.partner {
+    background: linear-gradient(135deg, #ff9ff3, var(--danger-color));
+    color: white;
+    border-bottom-left-radius: 4px;
+}
+  
+.message-text {
+    line-height: 1.4;
+}
+  
+.message-time {
+    font-size: 0.7rem;
+    text-align: right;
+    margin-top: 0.25rem;
+    opacity: 0.85;
+}
+  
+.read-indicator {
+    display: inline-flex;
+    margin-left: 0.25rem;
+}
+  
+.chat-footer {
+    background-color: white;
+    padding: 1rem;
+    border-top: 1px solid #eaeaea;
+}
+  
+.message-form {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+  
+.chat-input {
+    flex: 1;
+    border-radius: 24px;
+    padding: 0.75rem 1.25rem;
+    border: 1px solid #e0e0e0;
+    transition: var(--transition);
+    font-size: 0.95rem;
+    background-color: #f5f7fa;
+}
+  
+.chat-input:focus {
+    box-shadow: 0 0 0 3px rgba(110, 142, 251, 0.15);
+    border-color: var(--primary-color);
+    outline: none;
+    background-color: white;
+}
+  
+.chat-input:disabled {
+    background-color: #f0f0f0;
+}
+  
+.send-button {
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border: none;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    cursor: pointer;
+}
+  
+.send-button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+  
+.send-button:active {
+    transform: translateY(0);
+}
+  
+.audio-button {
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    transition: var(--transition);
+    cursor: pointer;
+    color: #666;
+}
+  
+.audio-button:hover {
+    background-color: #efefef;
+}
+  
+.audio-button.recording {
+    background: linear-gradient(135deg, #ff9ff3, var(--danger-color));
+    color: white;
+    animation: pulse 1.5s infinite;
+}
+  
+@keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(236, 56, 188, 0.4);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(236, 56, 188, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(236, 56, 188, 0);
+    }
+}
+  
+.delete-message {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    box-shadow: var(--shadow-sm);
+    border: none;
+    cursor: pointer;
+}
+  
+.message-container:hover .delete-message {
+    opacity: 1;
+}
+  
+.empty-chat {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #888;
+    padding: 2rem;
+}
+  
+.empty-chat i {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+  
+.home-button {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    transition: var(--transition);
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+}
+  
+.home-button:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+  
+.audio-message audio {
+    max-width: 100%;
+    height: 36px;
+}
+  
+@media (max-width: 768px) {
+    .chat-container {
+      margin: 0;
+      height: 100vh;
+      border-radius: 0;
+    }
+    
+    .message-bubble {
+      max-width: 85%;
+    }
+    
+    .avatar {
+      width: 40px !important;
+      height: 40px !important;
+    }
+}
