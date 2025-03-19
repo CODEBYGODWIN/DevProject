@@ -4,120 +4,122 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('css/home.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/home.css') }}?v={{ 'now'|date('YmdHi') }}">
 {% endblock %}
 
 {% block body %}
-    <div class="container mt-4 mb-5">
-        <div class="welcome-header">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="mb-0 fw-bold">Bienvenue, {{ user.username }} !</h1>
-                    <p class="lead mb-0">Découvrez vos matchs et conversations</p>
-                </div>
-                <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                    <div class="welcome-actions">
-                        <a href="{{ path('profile') }}" class="btn btn-light">
-                            <i class="bi bi-person-circle me-1"></i> Profil
-                        </a>
-                        <a href="{{ path('logout') }}" class="btn btn-outline-light">
-                            <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
-                        </a>
+    <div class="home-page"> <!-- Ajout d'un conteneur spécifique -->
+        <div class="container mt-4 mb-5">
+            <div class="welcome-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="mb-0 fw-bold">Bienvenue, {{ user.username }} !</h1>
+                        <p class="lead mb-0">Découvrez vos matchs et conversations</p>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        {% if chats|length > 0 %}
-            <div class="row mb-4">
-                <div class="col">
-                    <h2 class="section-title">Conversations en cours</h2>
-                    <div class="conversations-list d-flex flex-wrap">
-                        {% for chat in chats %}
-                            <a href="{{ path('chat_view', {'chatId': chat.id}) }}" class="conversation-item text-center mx-2 mb-3 position-relative">
-                                <div class="conversation-avatar">
-                                    {% if chat.partner.picture %}
-                                        <img src="{{ asset('uploads/' ~ chat.partner.picture) }}" alt="{{ chat.partner.username }}">
-                                    {% else %}
-                                        <img src="{{ asset('uploads/default.png') }}" alt="Photo par défaut">
-                                    {% endif %}
-                                </div>
-                                <div class="unread-counter" id="unread-{{ chat.id }}" style="display: {{ chat.unreadCount > 0 ? 'flex' : 'none' }};">{{ chat.unreadCount }}</div>
-                                <p class="conversation-name mt-2 mb-0">{{ chat.partner.username }}</p>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <div class="welcome-actions">
+                            <a href="{{ path('profile') }}" class="btn btn-light">
+                                <i class="bi bi-person-circle me-1"></i> Profil
                             </a>
-                        {% endfor %}
+                            <a href="{{ path('logout') }}" class="btn btn-outline-light">
+                                <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        {% endif %}
 
-        <div class="row">
-            <div class="col">
-                <h2 class="section-title">
-                    {% if goal is defined and goal %}
-                        Vos matches {% if goal == 'trouver le grand amour' %}amoureux{% elseif goal == 'construire des relations amicales' %}amicaux{% else %}amicaux et amoureux{% endif %}
-                    {% else %}
-                        Vos matches
-                    {% endif %}
-                </h2>
-
-                {% if matches|length > 0 %}
-                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                        {% for match in matches %}
-                            <div class="col">
-                                <div class="match-card">
-                                    <div class="card-img-wrapper">
-                                        {% if match.user.picture %}
-                                            <img src="{{ asset('uploads/' ~ match.user.picture) }}" alt="{{ match.user.username }}">
+            {% if chats|length > 0 %}
+                <div class="row mb-4">
+                    <div class="col">
+                        <h2 class="section-title">Conversations en cours</h2>
+                        <div class="conversations-list d-flex flex-wrap">
+                            {% for chat in chats %}
+                                <a href="{{ path('chat_view', {'chatId': chat.id}) }}" class="conversation-item text-center mx-2 mb-3 position-relative">
+                                    <div class="conversation-avatar">
+                                        {% if chat.partner.picture %}
+                                            <img src="{{ asset('uploads/' ~ chat.partner.picture) }}" alt="{{ chat.partner.username }}">
                                         {% else %}
                                             <img src="{{ asset('uploads/default.png') }}" alt="Photo par défaut">
                                         {% endif %}
                                     </div>
+                                    <div class="unread-counter" id="unread-{{ chat.id }}" style="display: {{ chat.unreadCount > 0 ? 'flex' : 'none' }};">{{ chat.unreadCount }}</div>
+                                    <p class="conversation-name mt-2 mb-0">{{ chat.partner.username }}</p>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
 
-                                    <div class="card-body">
-                                        <h5 class="card-title fw-bold mb-2">{{ match.user.username }}</h5>
-                                        <div class="badge-container">
-                                            <span class="match-badge badge-affinity">
-                                                <i class="bi bi-arrow-through-heart me-1"></i>
-                                                {{ match.percentage }}% d'affinité
-                                            </span>
+            <div class="row">
+                <div class="col">
+                    <h2 class="section-title">
+                        {% if goal is defined and goal %}
+                            Vos matches {% if goal == 'trouver le grand amour' %}amoureux{% elseif goal == 'construire des relations amicales' %}amicaux{% else %}amicaux et amoureux{% endif %}
+                        {% else %}
+                            Vos matches
+                        {% endif %}
+                    </h2>
 
-                                            {% if match.isRomanticMatch is defined %}
-                                                {% if match.isRomanticMatch %}
-                                                    <span class="match-badge badge-love">
-                                                        <i class="bi bi-heart-fill me-1"></i> Match amoureux
-                                                    </span>
-                                                {% else %}
-                                                    <span class="match-badge badge-friend">
-                                                        <i class="bi bi-people-fill me-1"></i> Match amical
-                                                    </span>
-                                                {% endif %}
+                    {% if matches|length > 0 %}
+                        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                            {% for match in matches %}
+                                <div class="col">
+                                    <div class="match-card">
+                                        <div class="card-img-wrapper">
+                                            {% if match.user.picture %}
+                                                <img src="{{ asset('uploads/' ~ match.user.picture) }}" alt="{{ match.user.username }}">
+                                            {% else %}
+                                                <img src="{{ asset('uploads/default.png') }}" alt="Photo par défaut">
                                             {% endif %}
                                         </div>
-                                        <div class="d-flex flex-wrap gap-2">
-                                            <button class="btn btn-match btn-profile">
-                                                <i class="bi bi-eye me-1"></i> Voir profil
-                                            </button>
-                                            {% if not match.hasChat %}
-                                                <a href="{{ path('start_chat', {'userId': match.user.id}) }}" class="btn btn-match btn-chat">
-                                                    <i class="bi bi-chat-dots me-1"></i> Discuter
-                                                </a>
-                                            {% else %}
-                                                <a href="{{ path('start_chat', {'userId': match.user.id}) }}" class="btn btn-match btn-continue-chat">
-                                                    <i class="bi bi-chat-text me-1"></i> Continuer
-                                                </a>
-                                            {% endif %}
+
+                                        <div class="card-body">
+                                            <h5 class="card-title fw-bold mb-2">{{ match.user.username }}</h5>
+                                            <div class="badge-container">
+                                                <span class="match-badge badge-affinity">
+                                                    <i class="bi bi-arrow-through-heart me-1"></i>
+                                                    {{ match.percentage }}% d'affinité
+                                                </span>
+
+                                                {% if match.isRomanticMatch is defined %}
+                                                    {% if match.isRomanticMatch %}
+                                                        <span class="match-badge badge-love">
+                                                            <i class="bi bi-heart-fill me-1"></i> Match amoureux
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="match-badge badge-friend">
+                                                            <i class="bi bi-people-fill me-1"></i> Match amical
+                                                        </span>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <button class="btn btn-match btn-profile">
+                                                    <i class="bi bi-eye me-1"></i> Voir profil
+                                                </button>
+                                                {% if not match.hasChat %}
+                                                    <a href="{{ path('start_chat', {'userId': match.user.id}) }}" class="btn btn-match btn-chat">
+                                                        <i class="bi bi-chat-dots me-1"></i> Discuter
+                                                    </a>
+                                                {% else %}
+                                                    <a href="{{ path('start_chat', {'userId': match.user.id}) }}" class="btn btn-match btn-continue-chat">
+                                                        <i class="bi bi-chat-text me-1"></i> Continuer
+                                                    </a>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle me-2"></i> Aucun match trouvé pour le moment. Revenez plus tard lorsque d'autres utilisateurs auront complété leur questionnaire.
-                    </div>
-                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i> Aucun match trouvé pour le moment. Revenez plus tard lorsque d'autres utilisateurs auront complété leur questionnaire.
+                        </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -132,6 +134,13 @@
         function initHome() {
             if (window.homeInitialized || window.homeInitializationInProgress) {
                 return;
+            }
+            
+            const styleSheets = document.styleSheets;
+            for (let i = 0; i < styleSheets.length; i++) {
+                try {
+                    const rules = styleSheets[i].cssRules;
+                } catch (e) {}
             }
             
             window.homeInitializationInProgress = true;
@@ -154,22 +163,36 @@
                 window.homeEventSource.onmessage = function(event) {
                     try {
                         const data = JSON.parse(event.data);
-                        const chatId = data.chatId || event.lastEventId.split('/').pop();
+                        
+                        let chatId;
+                        if (data.chatId) {
+                            chatId = data.chatId;
+                        } else if (event.lastEventId) {
+                            const parts = event.lastEventId.split('/');
+                            if (parts.length > 0) {
+                                chatId = parts[parts.length - 1];
+                            }
+                        }
+                        
+                        if (!chatId) {
+                            console.error('Chat ID not found in event data', data, event);
+                            return;
+                        }
+                        
                         const unreadCounter = document.getElementById('unread-' + chatId);
                         
-                        if (!unreadCounter) return;
+                        if (!unreadCounter) {
+                            console.error('Unread counter element not found for chat', chatId);
+                            return;
+                        }
                         
                         if (data.action === 'delete') {
-                            // Amélioration ici pour vérifier correctement si le message supprimé était non lu
-                            if (data.wasUnread === true && data.sender !== currentUserId) {
+                            if (data.wasUnread === true && data.sender && data.sender !== currentUserId) {
                                 const currentCount = parseInt(unreadCounter.textContent) || 0;
                                 if (currentCount > 0) {
                                     const newCount = currentCount - 1;
                                     unreadCounter.textContent = newCount;
                                     unreadCounter.style.display = newCount > 0 ? 'flex' : 'none';
-                                    
-                                    // Log pour le débogage
-                                    console.log('Message non lu supprimé, compteur mis à jour:', newCount);
                                 }
                             }
                         } else if (data.action === 'read_all') {
@@ -177,7 +200,7 @@
                                 unreadCounter.textContent = '0';
                                 unreadCounter.style.display = 'none';
                             }
-                        } else if (data.sender && data.sender.id !== currentUserId) {
+                        } else if (data.sender && data.sender.id && data.sender.id !== currentUserId) {
                             unreadCounter.style.display = 'flex';
                             const currentCount = parseInt(unreadCounter.textContent) || 0;
                             unreadCounter.textContent = currentCount + 1;
@@ -188,6 +211,7 @@
                 };
                 
                 window.homeEventSource.onerror = function(error) {
+                    console.error('EventSource error:', error);
                     window.homeInitialized = false;
                     window.homeInitializationInProgress = false;
                     
@@ -219,7 +243,17 @@
             window.homeInitializationInProgress = false;
         }
 
-        initHome();
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!window.homeInitialized && !window.homeInitializationInProgress) {
+                initHome();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!window.homeInitialized && !window.homeInitializationInProgress) {
+                initHome();
+            }
+        });
 
         document.addEventListener('visibilitychange', function() {
             if (document.visibilityState === 'visible' && document.querySelector('.container') && !window.homeInitialized) {
@@ -236,5 +270,9 @@
             window.homeInitialized = false;
             window.homeInitializationInProgress = false;
         });
+
+        if (!window.homeInitialized && !window.homeInitializationInProgress) {
+            initHome();
+        }
     </script>
 {% endblock %}

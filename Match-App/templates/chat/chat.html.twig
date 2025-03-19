@@ -4,7 +4,7 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    <link rel="stylesheet" href="{{ asset('css/chat.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/chat.css') }}?v={{ 'now'|date('YmdHi') }}">
 {% endblock %}
 
 {% block body %}
@@ -45,7 +45,18 @@
                             {% endif %}
 
                             <div class="message-bubble {% if isCurrentUser %}current-user{% else %}partner{% endif %}">
-                                <div class="message-text">{{ message.content }}</div>
+                                <div class="message-text">
+                                    {% if message.type == 'audio' %}
+                                        <div class="audio-message">
+                                            <audio controls>
+                                                <source src="{{ asset(message.audioUrl) }}" type="audio/webm">
+                                                Votre navigateur ne supporte pas la lecture audio.
+                                            </audio>
+                                        </div>
+                                    {% else %}
+                                        {{ message.content }}
+                                    {% endif %}
+                                </div>
                                 <div class="message-time">
                                     {{ message.timestamp|date('H:i') }}
                                     {% if isCurrentUser %}
@@ -75,6 +86,9 @@
             <div class="chat-footer">
                 <div class="message-form">
                     <input type="text" id="message-input" class="chat-input" placeholder="Écrivez votre message..." autocomplete="off">
+                    <button type="button" id="audio-button" class="audio-button">
+                        <i class="bi bi-mic-fill"></i>
+                    </button>
                     <button type="button" id="send-button" class="send-button">
                         <i class="bi bi-send-fill text-white"></i>
                     </button>
@@ -86,7 +100,7 @@
     <script>
         window.chatInitialized = false;
         window.chatInitializationInProgress = false;
-        
+
         function initChat() {
             if (window.chatInitialized || window.chatInitializationInProgress) {
                 return;
@@ -102,10 +116,15 @@
             const chatBox = document.getElementById('chat-messages');
             const messageInput = document.getElementById('message-input');
             const sendButton = document.getElementById('send-button');
+            const audioButton = document.getElementById('audio-button');
             const chatId = '{{ chat.id }}';
             const currentUserId = '{{ app.session.get('user').id }}';
             const baseUploadPath = "{{ app.request.schemeAndHttpHost }}";
             const defaultImagePath = "{{ asset('uploads/default.png') }}";
+
+            let mediaRecorder;
+            let audioChunks = [];
+            let isRecording = false;
 
             scrollToBottom();
 
@@ -114,6 +133,11 @@
             }
 
             function createMessageElement(message) {
+                if (!message || !message.sender || !message.id) {
+                    console.error('Message data is incomplete', message);
+                    return null;
+                }
+
                 const isCurrentUser = message.sender.id === currentUserId;
 
                 const messageContainer = document.createElement('div');
@@ -143,11 +167,28 @@
 
                 const messageText = document.createElement('div');
                 messageText.className = 'message-text';
-                messageText.textContent = message.content;
+                
+                if (message.type === 'audio' && message.audioUrl) {
+                    const audioContainer = document.createElement('div');
+                    audioContainer.className = 'audio-message';
+                    
+                    const audio = document.createElement('audio');
+                    audio.controls = true;
+                    
+                    const source = document.createElement('source');
+                    source.src = message.audioUrl.startsWith('/') ? message.audioUrl : '/' + message.audioUrl;
+                    source.type = 'audio/webm';
+                    
+                    audio.appendChild(source);
+                    audioContainer.appendChild(audio);
+                    messageText.appendChild(audioContainer);
+                } else {
+                    messageText.textContent = message.content || '';
+                }
 
                 const messageTime = document.createElement('div');
                 messageTime.className = 'message-time';
-                messageTime.textContent = message.timestamp;
+                messageTime.textContent = message.timestamp || '';
 
                 if (isCurrentUser) {
                     const readIndicator = document.createElement('span');
@@ -177,16 +218,25 @@
                 return messageContainer;
             }
 
-            function sendMessage() {
+            function sendMessage(type = 'text', audioData = null) {
                 const content = messageInput.value.trim();
-                if (!content) return;
+                if (type === 'text' && !content) return;
+
+                const messageData = {
+                    type: type,
+                    content: type === 'text' ? content : 'Message audio'
+                };
+
+                if (type === 'audio' && audioData) {
+                    messageData.audioData = audioData;
+                }
 
                 fetch(`/chat/${chatId}/send`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ content })
+                    body: JSON.stringify(messageData)
                 })
                 .then(response => {
                     if (!response.ok) {
@@ -199,6 +249,7 @@
                     messageInput.focus();
                 })
                 .catch(error => {
+                    console.error('Erreur lors de l\'envoi du message:', error);
                     alert('Erreur lors de l\'envoi du message. Veuillez réessayer.');
                 });
             }
@@ -214,6 +265,7 @@
                     return response.json();
                 })
                 .catch(error => {
+                    console.error('Erreur lors de la suppression du message:', error);
                     alert('Erreur lors de la suppression du message. Veuillez réessayer.');
                 });
             }
@@ -236,6 +288,56 @@
                 });
             }
 
+            function initAudioRecording() {
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    navigator.mediaDevices.getUserMedia({ audio: true })
+                        .then(stream => {
+                            mediaRecorder = new MediaRecorder(stream);
+                            
+                            mediaRecorder.ondataavailable = function(e) {
+                                audioChunks.push(e.data);
+                            };
+                            
+                            mediaRecorder.onstop = function() {
+                                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                                const reader = new FileReader();
+                                reader.readAsDataURL(audioBlob);
+                                reader.onloadend = function() {
+                                    const base64data = reader.result;
+                                    sendMessage('audio', base64data);
+                                    audioChunks = [];
+                                };
+                            };
+                        })
+                        .catch(error => {
+                            console.error("Erreur d'accès au microphone:", error);
+                            alert("Impossible d'accéder au microphone. Veuillez vérifier vos paramètres.");
+                        });
+                } else {
+                    alert("Votre navigateur ne supporte pas l'enregistrement audio.");
+                    audioButton.style.display = 'none';
+                }
+            }
+
+            audioButton.addEventListener('click', function() {
+                if (!isRecording) {
+                    audioChunks = [];
+                    mediaRecorder.start();
+                    isRecording = true;
+                    audioButton.innerHTML = '<i class="bi bi-stop-fill"></i>';
+                    audioButton.classList.add('recording');
+                    messageInput.placeholder = 'Enregistrement en cours...';
+                    messageInput.disabled = true;
+                } else {
+                    mediaRecorder.stop();
+                    isRecording = false;
+                    audioButton.innerHTML = '<i class="bi bi-mic-fill"></i>';
+                    audioButton.classList.remove('recording');
+                    messageInput.placeholder = 'Écrivez votre message...';
+                    messageInput.disabled = false;
+                }
+            });
+
             if (window.sendButtonHandler) {
                 sendButton.removeEventListener('click', window.sendButtonHandler);
             }
@@ -243,10 +345,12 @@
                 messageInput.removeEventListener('keypress', window.messageInputHandler);
             }
 
-            window.sendButtonHandler = sendMessage;
+            window.sendButtonHandler = function() {
+                sendMessage('text');
+            };
             window.messageInputHandler = function(event) {
                 if (event.key === 'Enter') {
-                    sendMessage();
+                    sendMessage('text');
                 }
             };
 
@@ -279,21 +383,32 @@
                         markMessagesAsRead();
                     }
 
-                    const messageElement = createMessageElement(data);
-                    chatBox.appendChild(messageElement);
-
-                    const emptyChat = document.querySelector('.empty-chat');
-                    if (emptyChat) {
-                        emptyChat.remove();
+                    // Vérification des données avant de créer l'élément message
+                    if (!data || !data.sender || !data.id) {
+                        console.error('Message data is incomplete', data);
+                        return;
                     }
 
-                    scrollToBottom();
+                    const messageElement = createMessageElement(data);
+                    
+                    // Vérifier si le message a été créé avec succès
+                    if (messageElement) {
+                        chatBox.appendChild(messageElement);
+
+                        const emptyChat = document.querySelector('.empty-chat');
+                        if (emptyChat) {
+                            emptyChat.remove();
+                        }
+
+                        scrollToBottom();
+                    }
                 } catch (error) {
                     console.error('Error processing message:', error);
                 }
             };
 
             window.chatEventSource.onerror = function(error) {
+                console.error('EventSource error:', error);
                 window.chatInitialized = false;
                 window.chatInitializationInProgress = false;
                 
@@ -308,14 +423,20 @@
                     }
                 }, 3000);
             };
-        
+
             markMessagesAsRead();
+            initAudioRecording();
             
             window.chatInitialized = true;
             window.chatInitializationInProgress = false;
         }
 
-        initChat();
+        // Faire en sorte que initChat soit appelé correctement
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!window.chatInitialized && !window.chatInitializationInProgress) {
+                initChat();
+            }
+        });
 
         document.addEventListener('visibilitychange', function() {
             if (document.visibilityState === 'visible' && document.querySelector('.chat-container')) {
@@ -342,5 +463,10 @@
             window.chatInitialized = false;
             window.chatInitializationInProgress = false;
         });
+
+        // Appeler initChat immédiatement pour garantir que le chat se charge correctement
+        if (!window.chatInitialized && !window.chatInitializationInProgress) {
+            initChat();
+        }
     </script>
 {% endblock %}

@@ -125,13 +125,34 @@ class ChatController extends AbstractController
             return new JsonResponse(['error' => 'Chat not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $content = json_decode($request->getContent(), true)['content'] ?? '';
-        if (empty($content)) {
+        $requestData = json_decode($request->getContent(), true);
+        $content = $requestData['content'] ?? '';
+        $type = $requestData['type'] ?? 'text';
+        $audioUrl = null;
+        
+        if ($type === 'audio') {
+            $audioData = $requestData['audioData'] ?? '';
+            if (empty($audioData)) {
+                return new JsonResponse(['error' => 'Audio data is required for audio messages'], Response::HTTP_BAD_REQUEST);
+            }
+            
+            $decodedAudio = base64_decode(preg_replace('#^data:audio/\w+;base64,#i', '', $audioData));
+            $audioFilename = 'audio_' . uniqid() . '.webm';
+            $audioDirectory = $this->getParameter('kernel.project_dir') . '/public/uploads/audio';
+            
+            if (!file_exists($audioDirectory)) {
+                mkdir($audioDirectory, 0777, true);
+            }
+            
+            file_put_contents($audioDirectory . '/' . $audioFilename, $decodedAudio);
+            $audioUrl = '/uploads/audio/' . $audioFilename;
+            $content = 'Message audio';
+        } elseif (empty($content)) {
             return new JsonResponse(['error' => 'Message content cannot be empty'], Response::HTTP_BAD_REQUEST);
         }
 
         $sender = $dm->getRepository(User::class)->find($currentUser['id']);
-        $message = new Message($chat, $sender, $content);
+        $message = new Message($chat, $sender, $content, $type, $audioUrl);
 
         $dm->persist($message);
         $dm->flush();
@@ -139,6 +160,8 @@ class ChatController extends AbstractController
         $messageData = [
             'id' => $message->getId(),
             'content' => $message->getContent(),
+            'type' => $message->getType(),
+            'audioUrl' => $message->getAudioUrl(),
             'sender' => [
                 'id' => $sender->getId(),
                 'username' => $sender->getUsername(),
@@ -178,6 +201,13 @@ class ChatController extends AbstractController
         $chatId = $message->getChat()->getId();
         $wasUnread = !$message->isRead();
         $senderId = $message->getSender()->getId();
+        
+        if ($message->getType() === 'audio' && $message->getAudioUrl()) {
+            $audioPath = $this->getParameter('kernel.project_dir') . '/public' . $message->getAudioUrl();
+            if (file_exists($audioPath)) {
+                unlink($audioPath);
+            }
+        }
 
         $dm->remove($message);
         $dm->flush();
@@ -241,4 +271,4 @@ class ChatController extends AbstractController
 
         return new JsonResponse(['success' => true]);
     }
-}
+} 
