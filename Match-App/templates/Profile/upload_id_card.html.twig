@@ -1,0 +1,123 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Télécharger votre carte d'identité{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Télécharger votre carte d'identité</h1>
+    
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Téléchargement de carte d'identité</h5>
+        </div>
+        <div class="card-body">
+            <p class="mb-3">
+                Pour des raisons de sécurité et de vérification, nous vous demandons de télécharger une copie de votre carte d'identité. 
+                Cette pièce d'identité sera utilisée uniquement pour vérifier votre identité et sera traitée de manière confidentielle.
+            </p>
+            
+            <form method="post" enctype="multipart/form-data" id="id-card-form">
+                <div class="mb-3">
+                    <label for="id_card" class="form-label">Carte d'identité</label>
+                    <input type="file" id="id_card" name="id_card" class="form-control" accept="image/jpeg,image/png,application/pdf" required>
+                    <div class="form-text">Formats acceptés: JPEG, PNG, PDF. Taille maximale: 5 MB.</div>
+                </div>
+                
+                <div class="id-card-preview mt-3 mb-3" style="display: none;">
+                    <h6>Aperçu :</h6>
+                    <img id="id-card-preview-img" src="#" alt="Aperçu de la carte d'identité" style="max-width: 100%; max-height: 300px;" />
+                </div>
+                
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="consent" required>
+                    <label class="form-check-label" for="consent">
+                        Je consens à ce que ma carte d'identité soit utilisée uniquement à des fins de vérification et je comprends qu'elle sera traitée de manière confidentielle.
+                    </label>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{{ path('profile_id_verification') }}" class="btn btn-secondary">Annuler</a>
+                    <button type="submit" class="btn btn-primary">Télécharger</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const idCardInput = document.getElementById('id_card');
+            const previewContainer = document.querySelector('.id-card-preview');
+            const previewImg = document.getElementById('id-card-preview-img');
+            
+            idCardInput.addEventListener('change', function() {
+                const file = this.files[0];
+                
+                if (file) {
+                    // Vérifier la taille du fichier (max 5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Le fichier est trop volumineux. La taille maximale est de 5 MB.');
+                        this.value = '';
+                        previewContainer.style.display = 'none';
+                        return;
+                    }
+                    
+                    // Vérifier le type de fichier
+                    const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+                    if (!validTypes.includes(file.type)) {
+                        alert('Format de fichier non valide. Veuillez télécharger un fichier JPEG, PNG ou PDF.');
+                        this.value = '';
+                        previewContainer.style.display = 'none';
+                        return;
+                    }
+                    
+                    // Afficher l'aperçu pour les images
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            previewImg.src = e.target.result;
+                            previewContainer.style.display = 'block';
+                        }
+                        reader.readAsDataURL(file);
+                    } else {
+                        // Pour les PDF, afficher un message
+                        previewContainer.style.display = 'none';
+                    }
+                } else {
+                    previewContainer.style.display = 'none';
+                }
+            });
+            
+            // Validation du formulaire
+            const form = document.getElementById('id-card-form');
+            form.addEventListener('submit', function(event) {
+                const file = idCardInput.files[0];
+                const consent = document.getElementById('consent').checked;
+                
+                if (!file) {
+                    event.preventDefault();
+                    alert('Veuillez sélectionner un fichier.');
+                    return;
+                }
+                
+                if (!consent) {
+                    event.preventDefault();
+                    alert('Vous devez consentir au traitement de votre carte d\'identité.');
+                    return;
+                }
+            });
+        });
+    </script>
+{% endblock %}

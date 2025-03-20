@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Statut de vérification{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Statut de vérification de votre carte d'identité</h1>
+    
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Statut de vérification</h5>
+        </div>
+        <div class="card-body">
+            {% if user.idCard %}
+                {% if user.idCardVerified %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> Votre carte d'identité a été vérifiée avec succès.
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-clock"></i> Votre carte d'identité est en cours de vérification. Veuillez patienter.
+                    </div>
+                {% endif %}
+                
+                <div class="mt-3">
+                    <h6>Carte d'identité téléchargée :</h6>
+                    {% set idCardPath = '/uploads/id_cards/' ~ user.idCard %}
+                    {% if user.idCard ends with '.pdf' %}
+                        <a href="{{ idCardPath }}" target="_blank" class="btn btn-outline-primary">Voir le PDF</a>
+                    {% else %}
+                        <div class="mt-2">
+                            <img src="{{ idCardPath }}" alt="Carte d'identité" class="img-fluid" style="max-height: 200px;">
+                        </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i> Vous n'avez pas encore téléchargé votre carte d'identité.
+                </div>
+                
+                <div class="mt-3">
+                    <a href="{{ path('profile_upload_id_card') }}" class="btn btn-primary">Télécharger ma carte d'identité</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ path('profile') }}" class="btn btn-secondary">Retour au profil</a>
+    </div>
+</div>
+{% endblock %}
