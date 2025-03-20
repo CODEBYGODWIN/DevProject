@@ -1,0 +1,150 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Profil de {{ user.username }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .profile-header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .profile-header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .profile-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 2rem;
+        }
+        
+        .profile-image-container {
+            text-align: center;
+        }
+        
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #fff;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .profile-details {
+            padding: 1rem 2rem 2rem;
+        }
+        
+        .profile-info {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            row-gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .profile-label {
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .profile-value {
+            color: #333;
+        }
+        
+        .bio-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .bio-label {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background-color: #4a6fdc;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a5fc6;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="profile-container">
+        <div class="profile-header">
+            <h1>Profil de {{ user.username }}</h1>
+        </div>
+        
+        <div class="profile-card">
+            <div class="profile-image-container">
+                {% if user.picture %}
+                    <img src="{{ asset('uploads/' ~ user.picture) }}" alt="{{ user.username }}" class="profile-image">
+                {% else %}
+                    <img src="{{ asset('uploads/default.png') }}" alt="Photo par défaut" class="profile-image">
+                {% endif %}
+            </div>
+            
+            <div class="profile-details">
+                <div class="profile-info">
+                    <div class="profile-label">Nom d'utilisateur:</div>
+                    <div class="profile-value">{{ user.username }}</div>
+                    
+                    <div class="profile-label">Genre:</div>
+                    <div class="profile-value">{{ user.gender }}</div>
+                    
+                    <div class="profile-label">Date de naissance:</div>
+                    <div class="profile-value">{{ user.birthdate|date('d/m/Y') }}</div>
+                    
+                    <div class="profile-label">Date d'inscription:</div>
+                    <div class="profile-value">{{ user.createdAt|date('d/m/Y H:i') }}</div>
+                </div>
+                
+                {% if user.bio %}
+                    <div class="bio-section">
+                        <div class="bio-label">À propos</div>
+                        <div class="profile-value">{{ user.bio|nl2br }}</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <a href="{{ path('home') }}" class="btn btn-primary">Retour à l'accueil</a>
+        </div>
+    </div>
+{% endblock %}
