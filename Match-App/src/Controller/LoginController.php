@@ -28,13 +28,31 @@ class LoginController extends AbstractController {
                 return $this->redirectToRoute('login');
             }
             
+            
+            if ($user->getIdCard() && !$user->isIdCardVerified()) {
+                
+                return $this->redirectToRoute('pending_verification');
+            }
+            
+          
+            if (!$user->getIdCard()) {
+                $this->addFlash('warning', 'Vous devez télécharger votre carte d\'identité pour accéder à votre compte. Veuillez contacter l\'administrateur.');
+                return $this->redirectToRoute('login');
+            }
+            
+            
             $session->set('user', [
                 'id' => $user->getId(),  
                 'email' => $user->getEmail(),
                 'username' => $user->getUsername(),
             ]);
 
-            return $this->redirectToRoute('questionnaire');
+           
+            if (!$user->getInou()) {
+                return $this->redirectToRoute('questionnaire');
+            }
+
+            return $this->redirectToRoute('home');
         }
         
         return $this->render('login/login.html.twig', [
@@ -47,5 +65,11 @@ class LoginController extends AbstractController {
     {
         $session->remove('user');
         return $this->redirectToRoute('login');
+    }
+    
+    #[Route('/pending-verification', name: 'pending_verification')]
+    public function pendingVerification(): Response
+    {
+        return $this->render('login/pending_verification.html.twig');
     }
 }

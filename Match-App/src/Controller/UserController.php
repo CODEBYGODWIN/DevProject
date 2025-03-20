@@ -47,6 +47,27 @@ class UserController extends AbstractController
                     $this->addFlash('error', 'Une erreur est survenue lors de l\'upload du fichier.');
                 }
             }
+            
+            
+            $idCardFile = $form->get('idCard')->getData();
+            if ($idCardFile) {
+                $idCardDirectory = $this->getParameter('uploads_directory') . '/id_cards';
+                
+                
+                if (!file_exists($idCardDirectory)) {
+                    mkdir($idCardDirectory, 0755, true);
+                }
+                
+                $newIdCardFilename = 'id_card_' . uniqid() . '.' . $idCardFile->guessExtension();
+                
+                try {
+                    $idCardFile->move($idCardDirectory, $newIdCardFilename);
+                    $user->setIdCard($newIdCardFilename);
+                    $user->setIdCardVerified(false); 
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Une erreur est survenue lors de l\'upload de votre carte d\'identité.');
+                }
+            }
 
             $hashedPassword = $passwordHasher->hashPassword($user, $user->getPassword());
             $user->setPassword($hashedPassword);
@@ -54,7 +75,8 @@ class UserController extends AbstractController
             $dm->persist($user);
             $dm->flush();
             
-            $this->addFlash('success', 'Votre compte a été créé avec succès !');
+            $this->addFlash('success', 'Votre compte a été créé avec succès ! Veuillez vous connecter.');
+            
             return $this->redirectToRoute('login');
         }
         

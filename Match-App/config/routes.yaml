@@ -3,3 +3,9 @@ controllers:
         path: ../src/Controller/
         namespace: App\Controller
     type: attribute
+
+profile_view:
+    path: /profile/{id}
+    controller: App\Controller\ProfileAnotherUserController::view
+
+

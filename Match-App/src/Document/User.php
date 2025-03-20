@@ -34,15 +34,18 @@ class User implements PasswordAuthenticatedUserInterface
     #[Assert\NotBlank]
     private $gender;
 
-    #[MongoDB\Field(type: "string")]
-    #[Assert\NotBlank]
-    private $orientation;
-
     #[MongoDB\Field(type: "string", nullable: true)]
     private ?string $bio = null;
 
     #[MongoDB\Field(type: "string", nullable: true)]
     private ?string $picture = null; 
+
+    #[MongoDB\Field(type: "string", nullable: true)]
+    private ?string $idCard = null;
+
+    #[MongoDB\Field(type: "boolean")]
+    private bool $idCardVerified = false;
+    
 
     #[MongoDB\Field(type: "date")]
     private ?\DateTime $createdAt = null;
@@ -82,14 +85,17 @@ class User implements PasswordAuthenticatedUserInterface
     public function getGender(): ?string { return $this->gender; }
     public function setGender(string $gender): self { $this->gender = $gender; return $this; }
 
-    public function getOrientation(): ?string { return $this->orientation; }
-    public function setOrientation(string $orientation): self { $this->orientation = $orientation; return $this; }
-
     public function getBio(): ?string { return $this->bio; }
     public function setBio(?string $bio): self { $this->bio = $bio; return $this; }
 
     public function getPicture(): ?string { return $this->picture; }
     public function setPicture(?string $picture): self { $this->picture = $picture; return $this; }
+
+    public function getIdCard(): ?string { return $this->idCard; }
+    public function setIdCard(?string $idCard): self { $this->idCard = $idCard; return $this; }
+
+    public function isIdCardVerified(): bool { return $this->idCardVerified; }
+    public function setIdCardVerified(bool $idCardVerified): self { $this->idCardVerified = $idCardVerified; return $this; }
 
     public function getCreatedAt(): ?\DateTime { return $this->createdAt; }
     public function setCreatedAt(\DateTime $createdAt): self { $this->createdAt = $createdAt; return $this; }

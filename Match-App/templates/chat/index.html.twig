@@ -1,0 +1,88 @@
+{# chat/index.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes conversations{% endblock %}
+
+{% block body %}
+    <h1>Mes conversations</h1>
+    
+    <div class="conversations-list">
+        {% if conversationData|length > 0 %}
+            {% for data in conversationData %}
+                <div class="conversation-item">
+                    <a href="{{ path('chat_conversation', {'id': data.conversation.id}) }}">
+                        <div class="user-info">
+                            {% if data.otherUser.picture %}
+                                <img src="{{ asset('uploads/' ~ data.otherUser.picture) }}" alt="Profile Picture" class="profile-pic">
+                            {% else %}
+                                <img src="{{ asset('uploads/default.png') }}" alt="Profile Picture" class="profile-pic">
+                            {% endif %}
+                            <h3>{{ data.otherUser.username }}</h3>
+                        </div>
+                        
+                        {% if data.lastMessage %}
+                            <div class="last-message">
+                                <p>{{ data.lastMessage.content|slice(0, 50) }}{% if data.lastMessage.content|length > 50 %}...{% endif %}</p>
+                                <small>{{ data.lastMessage.createdAt|date('d/m/Y H:i') }}</small>
+                            </div>
+                        {% else %}
+                            <div class="last-message">
+                                <p><em>Aucun message</em></p>
+                            </div>
+                        {% endif %}
+                    </a>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>Vous n'avez pas encore de conversations.</p>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .conversations-list {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .conversation-item {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+    .conversation-item a {
+        display: flex;
+        padding: 15px;
+        text-decoration: none;
+        color: inherit;
+    }
+    .user-info {
+        display: flex;
+        align-items: center;
+        width: 40%;
+    }
+    .profile-pic {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 10px;
+    }
+    
+    .last-message {
+        flex-grow: 1;
+        padding-left: 10px;
+        border-left: 1px solid #eee;
+    }
+    .last-message p {
+        margin: 0;
+        color: #555;
+    }
+    .last-message small {
+        color: #999;
+    }
+</style>
+{% endblock %}

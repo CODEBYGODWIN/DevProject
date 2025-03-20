@@ -1,34 +1,490 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Registration{% endblock %}
+{% block title %}Inscription{% endblock %}
 
 {% block body %}
-    <div class="container">
-        <h1>Registration</h1>
-        
-        {% for message in app.flashes('error') %}
-            <div class="alert alert-danger">
-                {{ message }}
+    <div class="registration-container">
+        <div class="registration-card">
+            <h1 class="text-center mb-3">Inscription</h1>
+            
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label }} mb-4">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+
+            {{ form_start(form, {'attr': {'id': 'registration-form', 'class': 'needs-validation'}}) }}
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <div class="form-group">
+                            {{ form_label(form.email, 'Email', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'Votre email'}}) }}
+                            <div class="validation-message" id="email-validation">
+                                <ul>
+                                    <li data-rule="length" class="invalid">L'email doit avoir au moins 8 caractères</li>
+                                    <li data-rule="format" class="invalid">Format d'email valide (exemple@domaine.com)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-2">
+                        <div class="form-group">
+                            {{ form_label(form.username, 'Nom d\'utilisateur', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.username, {'attr': {'class': 'form-control', 'placeholder': 'Votre nom d\'utilisateur'}}) }}
+                            <div class="validation-message" id="username-validation">
+                                <ul>
+                                    <li data-rule="length" class="invalid">Le nom d'utilisateur doit avoir au moins 6 caractères</li>
+                                    <li data-rule="format" class="invalid">Caractères autorisés: lettres, chiffres, tirets et underscores</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mb-2">
+                    {{ form_label(form.password, 'Mot de passe', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.password, {'attr': {'class': 'form-control', 'placeholder': 'Votre mot de passe'}}) }}
+                    <div class="validation-message" id="password-validation">
+                        <ul>
+                            <li data-rule="length" class="invalid">Au moins 8 caractères</li>
+                            <li data-rule="uppercase" class="invalid">Au moins une majuscule</li>
+                            <li data-rule="lowercase" class="invalid">Au moins une minuscule</li>
+                            <li data-rule="number" class="invalid">Au moins un chiffre</li>
+                            <li data-rule="special" class="invalid">Au moins un caractère spécial</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <div class="form-group">
+                            {{ form_label(form.birthdate, 'Date de naissance', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.birthdate, {'attr': {'class': 'form-control'}}) }}
+                            <div class="validation-message" id="birthdate-validation">
+                                <ul>
+                                    <li data-rule="required" class="invalid">La date de naissance est requise</li>
+                                    <li data-rule="age" class="invalid">Vous devez avoir au moins 18 ans</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-2">
+                        <div class="form-group">
+                            {{ form_label(form.gender, 'Genre', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.gender, {'attr': {'class': 'form-select'}}) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mb-2">
+                    {{ form_label(form.bio, 'Biographie', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.bio, {'attr': {'class': 'form-control', 'placeholder': 'Parlez-nous de vous', 'rows': 2}}) }}
+                </div>
+
+                <div class="form-group mb-2">
+                    {{ form_label(form.picture, 'Photo de profil', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.picture, {'attr': {'class': 'form-control'}}) }}
+                    <div class="picture-preview mt-1" style="display: none;">
+                        <img id="picture-preview-img" src="#" alt="Aperçu de la photo" style="max-width: 100%; max-height: 150px;" />
+                    </div>
+                </div>
+                
+                <div class="form-group mb-3 id-card-section">
+                    {{ form_label(form.idCard, 'Carte d\'identité', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.idCard, {'attr': {'class': 'form-control'}}) }}
+                    <small class="form-text text-muted">{{ form_help(form.idCard) }}</small>
+                    <div class="validation-message" id="idcard-validation">
+                        <ul>
+                            <li data-rule="required" class="invalid">Une carte d'identité est requise pour la vérification</li>
+                            <li data-rule="format" class="invalid">Format accepté: JPG, PNG ou PDF</li>
+                        </ul>
+                    </div>
+                    <div class="id-card-preview mt-1" style="display: none;">
+                        <img id="id-card-preview-img" src="#" alt="Aperçu de la carte d'identité" style="max-width: 100%; max-height: 150px;" />
+                        <p class="text-muted small">Votre carte d'identité sera vérifiée par notre équipe après l'inscription.</p>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 mb-2">
+                    {{ form_widget(form.save, {'attr': {'class': 'btn btn-primary'}}) }}
+                </div>
+            {{ form_end(form) }}
+            
+            <div class="text-center mt-2">
+                <p class="small">Déjà inscrit ? <a href="{{ path('login') }}" class="login-link">Connectez-vous ici</a></p>
             </div>
-        {% endfor %}
-        
-        {% for message in app.flashes('success') %}
-            <div class="alert alert-success">
-                {{ message }}
-            </div>
-        {% endfor %}
-        
-        {{ form_start(form) }}
-            {{ form_row(form.email) }}
-            {{ form_row(form.username) }}
-            {{ form_row(form.password) }}
-            {{ form_row(form.birthdate) }}
-            {{ form_row(form.gender) }}
-            {{ form_row(form.orientation) }}
-            {{ form_row(form.bio) }}
-            {{form_row(form.picture)}}
-            {{ form_row(form.save) }}
-        {{ form_end(form) }}
-        <button type="submit"><a href="{{ path('login') }}">Se connecter</a></button>
+        </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Email validation
+            const emailInput = document.querySelector('#{{ form.email.vars.id }}');
+            emailInput.addEventListener('input', function() {
+                const email = this.value;
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                
+                // Length rule
+                const lengthRule = document.querySelector('#email-validation [data-rule="length"]');
+                if (email.length >= 8) {
+                    lengthRule.classList.remove('invalid');
+                    lengthRule.classList.add('valid');
+                } else {
+                    lengthRule.classList.remove('valid');
+                    lengthRule.classList.add('invalid');
+                }
+                
+                // Format rule
+                const formatRule = document.querySelector('#email-validation [data-rule="format"]');
+                if (emailRegex.test(email)) {
+                    formatRule.classList.remove('invalid');
+                    formatRule.classList.add('valid');
+                } else {
+                    formatRule.classList.remove('valid');
+                    formatRule.classList.add('invalid');
+                }
+            });
+            
+            // Username validation
+            const usernameInput = document.querySelector('#{{ form.username.vars.id }}');
+            usernameInput.addEventListener('input', function() {
+                const username = this.value;
+                const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+                
+                // Length rule
+                const lengthRule = document.querySelector('#username-validation [data-rule="length"]');
+                if (username.length >= 6) {
+                    lengthRule.classList.remove('invalid');
+                    lengthRule.classList.add('valid');
+                } else {
+                    lengthRule.classList.remove('valid');
+                    lengthRule.classList.add('invalid');
+                }
+                
+                // Format rule
+                const formatRule = document.querySelector('#username-validation [data-rule="format"]');
+                if (usernameRegex.test(username)) {
+                    formatRule.classList.remove('invalid');
+                    formatRule.classList.add('valid');
+                } else {
+                    formatRule.classList.remove('valid');
+                    formatRule.classList.add('invalid');
+                }
+            });
+            
+            // Password validation
+            const passwordInput = document.querySelector('#{{ form.password.vars.id }}');
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+                
+                // Length rule
+                const lengthRule = document.querySelector('#password-validation [data-rule="length"]');
+                if (password.length >= 8) {
+                    lengthRule.classList.remove('invalid');
+                    lengthRule.classList.add('valid');
+                } else {
+                    lengthRule.classList.remove('valid');
+                    lengthRule.classList.add('invalid');
+                }
+                
+                // Uppercase rule
+                const uppercaseRule = document.querySelector('#password-validation [data-rule="uppercase"]');
+                if (/[A-Z]/.test(password)) {
+                    uppercaseRule.classList.remove('invalid');
+                    uppercaseRule.classList.add('valid');
+                } else {
+                    uppercaseRule.classList.remove('valid');
+                    uppercaseRule.classList.add('invalid');
+                }
+                
+                // Lowercase rule
+                const lowercaseRule = document.querySelector('#password-validation [data-rule="lowercase"]');
+                if (/[a-z]/.test(password)) {
+                    lowercaseRule.classList.remove('invalid');
+                    lowercaseRule.classList.add('valid');
+                } else {
+                    lowercaseRule.classList.remove('valid');
+                    lowercaseRule.classList.add('invalid');
+                }
+                
+                // Number rule
+                const numberRule = document.querySelector('#password-validation [data-rule="number"]');
+                if (/[0-9]/.test(password)) {
+                    numberRule.classList.remove('invalid');
+                    numberRule.classList.add('valid');
+                } else {
+                    numberRule.classList.remove('valid');
+                    numberRule.classList.add('invalid');
+                }
+                
+                // Special character rule
+                const specialRule = document.querySelector('#password-validation [data-rule="special"]');
+                if (/[^A-Za-z0-9]/.test(password)) {
+                    specialRule.classList.remove('invalid');
+                    specialRule.classList.add('valid');
+                } else {
+                    specialRule.classList.remove('valid');
+                    specialRule.classList.add('invalid');
+                }
+            });
+            
+            // Birthdate validation
+            const birthdateInput = document.querySelector('#{{ form.birthdate.vars.id }}');
+            birthdateInput.addEventListener('change', function() {
+                const birthdate = new Date(this.value);
+                const today = new Date();
+                const age = today.getFullYear() - birthdate.getFullYear();
+                
+                // Required rule
+                const requiredRule = document.querySelector('#birthdate-validation [data-rule="required"]');
+                if (this.value) {
+                    requiredRule.classList.remove('invalid');
+                    requiredRule.classList.add('valid');
+                } else {
+                    requiredRule.classList.remove('valid');
+                    requiredRule.classList.add('invalid');
+                }
+                
+                // Age rule
+                const ageRule = document.querySelector('#birthdate-validation [data-rule="age"]');
+                if (age >= 18) {
+                    ageRule.classList.remove('invalid');
+                    ageRule.classList.add('valid');
+                } else {
+                    ageRule.classList.remove('valid');
+                    ageRule.classList.add('invalid');
+                }
+            });
+            
+            // ID Card validation and preview
+            const idCardInput = document.querySelector('#{{ form.idCard.vars.id }}');
+            const idCardPreview = document.querySelector('.id-card-preview');
+            const idCardPreviewImg = document.querySelector('#id-card-preview-img');
+            
+            idCardInput.addEventListener('change', function() {
+                const file = this.files[0];
+                
+                // Required rule
+                const requiredRule = document.querySelector('#idcard-validation [data-rule="required"]');
+                if (file) {
+                    requiredRule.classList.remove('invalid');
+                    requiredRule.classList.add('valid');
+                } else {
+                    requiredRule.classList.remove('valid');
+                    requiredRule.classList.add('invalid');
+                }
+                
+                // Format rule
+                const formatRule = document.querySelector('#idcard-validation [data-rule="format"]');
+                const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+                if (file && validTypes.includes(file.type)) {
+                    formatRule.classList.remove('invalid');
+                    formatRule.classList.add('valid');
+                    
+                    // Show preview for images only
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            idCardPreviewImg.src = e.target.result;
+                            idCardPreview.style.display = 'block';
+                        }
+                        reader.readAsDataURL(file);
+                    } else {
+                        idCardPreview.style.display = 'none';
+                    }
+                } else {
+                    formatRule.classList.remove('valid');
+                    formatRule.classList.add('invalid');
+                    idCardPreview.style.display = 'none';
+                }
+            });
+            
+            // Picture preview
+            const pictureInput = document.querySelector('#{{ form.picture.vars.id }}');
+            const picturePreview = document.querySelector('.picture-preview');
+            const picturePreviewImg = document.querySelector('#picture-preview-img');
+            
+            pictureInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        picturePreviewImg.src = e.target.result;
+                        picturePreview.style.display = 'block';
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    picturePreview.style.display = 'none';
+                }
+            });
+        });
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .registration-container {
+            width: 100%;
+            max-width: 100%;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .registration-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        h1 {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #555;
+            font-size: 0.9rem;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 5px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            padding: 10px;
+            font-weight: 500;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0069d9;
+            transform: translateY(-2px);
+        }
+        
+        .login-link {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .login-link:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+        
+        /* Validation messages */
+        .validation-message {
+            font-size: 0.75rem;
+            margin-top: 3px;
+        }
+        
+        .validation-message ul {
+            list-style-type: none;
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+        
+        .validation-message li {
+            padding: 1px 0;
+        }
+        
+        .validation-message li.valid {
+            color: #28a745;
+        }
+        
+        .validation-message li.valid::before {
+            content: "✓ ";
+            font-weight: bold;
+        }
+        
+        .validation-message li.invalid {
+            color: #dc3545;
+        }
+        
+        .validation-message li.invalid::before {
+            content: "✗ ";
+            font-weight: bold;
+        }
+        
+        /* ID Card section */
+        .id-card-section {
+            border: 1px solid #e9ecef;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            margin-bottom: 15px;
+        }
+        
+        .id-card-preview, .picture-preview {
+            border: 1px dashed #ccc;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: #fff;
+            text-align: center;
+        }
+        
+        /* Espacement réduit */
+        .mb-2 {
+            margin-bottom: 0.5rem !important;
+        }
+        
+        .mb-3 {
+            margin-bottom: 0.75rem !important;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .registration-card {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.3rem;
+                margin-bottom: 10px;
+            }
+            
+            .form-control, .form-select, .btn-primary {
+                padding: 8px;
+            }
+            
+            .id-card-section {
+                padding: 8px;
+            }
+        }
+    </style>
 {% endblock %}

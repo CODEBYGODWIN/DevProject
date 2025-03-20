@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Vérification des cartes d'identité{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Vérification des cartes d'identité</h1>
+    
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    
+    {% if users|length > 0 %}
+        <p>{{ users|length }} utilisateur(s) en attente de vérification</p>
+        
+        <div class="row">
+            {% for user in users %}
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{{ user.username }}</h5>
+                            <span class="badge bg-warning">En attente</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <strong>Email:</strong> {{ user.email }}
+                            </div>
+                            <div class="mb-3">
+                                <strong>Date de naissance:</strong> {{ user.birthdate|date('d/m/Y') }}
+                            </div>
+                            <div class="mb-3">
+                                <strong>Carte d'identité:</strong>
+                                {% if user.idCard %}
+                                    {% set idCardPath = '/uploads/id_cards/' ~ user.idCard %}
+                                    {% if user.idCard ends with '.pdf' %}
+                                        <a href="{{ idCardPath }}" target="_blank" class="btn btn-sm btn-outline-primary">Voir le PDF</a>
+                                    {% else %}
+                                        <div class="mt-2">
+                                            <img src="{{ idCardPath }}" alt="Carte d'identité" class="img-fluid" style="max-height: 200px;">
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-danger">Aucune carte d'identité</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-3">
+                                <form action="{{ path('admin_verify_id', {'id': user.id}) }}" method="post">
+                                    <button type="submit" class="btn btn-success">Valider</button>
+                                </form>
+                                <form action="{{ path('admin_reject_id', {'id': user.id}) }}" method="post" onsubmit="return confirm('Êtes-vous sûr de vouloir rejeter cette carte d\'identité ?')">
+                                    <button type="submit" class="btn btn-danger">Rejeter</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            Aucune carte d'identité en attente de vérification.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

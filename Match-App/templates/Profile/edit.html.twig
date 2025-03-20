@@ -1,16 +1,350 @@
-{# filepath: templates/Profile/edit.html.twig #}
-
 {% extends 'base.html.twig' %}
 
-{% block title %}Éditer le Profil{% endblock %}
+{% block title %}Edit{% endblock %}
 
 {% block body %}
-    <h1>Éditer le Profil</h1>
+    <div class="container">
+        <h1>Edit</h1>
 
-    {{ form_start(form) }}
-        {{ form_widget(form) }}
-       
-    {{ form_end(form) }}
+        {{ form_start(form, {'attr': {'id': 'edit-form'}}) }}
+            <div class="form-group">
+                {{ form_label(form.email) }}
+                {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                <div class="validation-message" id="email-validation">
+                    <ul>
+                        <li data-rule="length" class="invalid">L'email doit avoir au moins 8 caractères</li>
+                        <li data-rule="format" class="invalid">Format d'email valide (exemple@domaine.com)</li>
+                    </ul>
+                </div>
+            </div>
 
-    <a href="{{ path('profile') }}">Retour au profil</a>
+            <div class="form-group">
+                {{ form_label(form.username) }}
+                {{ form_widget(form.username, {'attr': {'class': 'form-control'}}) }}
+                <div class="validation-message" id="username-validation">
+                    <ul>
+                        <li data-rule="length" class="invalid">Le nom d'utilisateur doit avoir au moins 6 caractères</li>
+                        <li data-rule="format" class="invalid">Caractères autorisés: lettres, chiffres, tirets et underscores</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.password) }}
+                {{ form_widget(form.password, {'attr': {'class': 'form-control'}}) }}
+                <div class="validation-message" id="password-validation">
+                    <ul>
+                        <li data-rule="length" class="invalid">Au moins 8 caractères</li>
+                        <li data-rule="uppercase" class="invalid">Au moins une majuscule</li>
+                        <li data-rule="lowercase" class="invalid">Au moins une minuscule</li>
+                        <li data-rule="number" class="invalid">Au moins un chiffre</li>
+                        <li data-rule="special" class="invalid">Au moins un caractère spécial</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="form-group">
+                {{ form_label(form.birthdate) }}
+                {{ form_widget(form.birthdate, {'attr': {'class': 'form-control'}}) }}
+                <div class="validation-message" id="birthdate-validation">
+                    <ul>
+                        <li data-rule="required" class="invalid">La date de naissance est requise</li>
+                        <li data-rule="age" class="invalid">Vous devez avoir au moins 18 ans</li>
+                    </ul>
+                </div>
+            </div>
+
+            {{ form_row(form.gender) }}
+            {{ form_row(form.bio) }}
+            {{ form_row(form.picture) }}
+            {{ form_row(form.save) }}
+        {{ form_end(form) }}
+        <button type="button" class="btn btn-link"><a href="{{ path('home') }}">Back to home</a></button>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        window.location.reload();
+        document.addEventListener('DOMContentLoaded', function() {
+            // Email validation
+            const emailInput = document.querySelector('#{{ form.email.vars.id }}');
+            emailInput.addEventListener('input', function() {
+                const email = this.value;
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                
+                // Length rule
+                const lengthRule = document.querySelector('#email-validation [data-rule="length"]');
+                if (email.length >= 8) {
+                    lengthRule.classList.remove('invalid');
+                    lengthRule.classList.add('valid');
+                } else {
+                    lengthRule.classList.remove('valid');
+                    lengthRule.classList.add('invalid');
+                }
+                
+                // Format rule
+                const formatRule = document.querySelector('#email-validation [data-rule="format"]');
+                if (emailRegex.test(email)) {
+                    formatRule.classList.remove('invalid');
+                    formatRule.classList.add('valid');
+                } else {
+                    formatRule.classList.remove('valid');
+                    formatRule.classList.add('invalid');
+                }
+            });
+            
+            // Username validation
+            const usernameInput = document.querySelector('#{{ form.username.vars.id }}');
+            usernameInput.addEventListener('input', function() {
+                const username = this.value;
+                const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+                
+                // Length rule
+                const lengthRule = document.querySelector('#username-validation [data-rule="length"]');
+                if (username.length >= 6) {
+                    lengthRule.classList.remove('invalid');
+                    lengthRule.classList.add('valid');
+                } else {
+                    lengthRule.classList.remove('valid');
+                    lengthRule.classList.add('invalid');
+                }
+                
+                // Format rule
+                const formatRule = document.querySelector('#username-validation [data-rule="format"]');
+                if (usernameRegex.test(username)) {
+                    formatRule.classList.remove('invalid');
+                    formatRule.classList.add('valid');
+                } else {
+                    formatRule.classList.remove('valid');
+                    formatRule.classList.add('invalid');
+                }
+            });
+            
+            // Password validation
+            const passwordInput = document.querySelector('#{{ form.password.vars.id }}');
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+                
+                // Length rule
+                const lengthRule = document.querySelector('#password-validation [data-rule="length"]');
+                if (password.length >= 8) {
+                    lengthRule.classList.remove('invalid');
+                    lengthRule.classList.add('valid');
+                } else {
+                    lengthRule.classList.remove('valid');
+                    lengthRule.classList.add('invalid');
+                }
+                
+                // Uppercase rule
+                const uppercaseRule = document.querySelector('#password-validation [data-rule="uppercase"]');
+                if (/[A-Z]/.test(password)) {
+                    uppercaseRule.classList.remove('invalid');
+                    uppercaseRule.classList.add('valid');
+                } else {
+                    uppercaseRule.classList.remove('valid');
+                    uppercaseRule.classList.add('invalid');
+                }
+                
+                // Lowercase rule
+                const lowercaseRule = document.querySelector('#password-validation [data-rule="lowercase"]');
+                if (/[a-z]/.test(password)) {
+                    lowercaseRule.classList.remove('invalid');
+                    lowercaseRule.classList.add('valid');
+                } else {
+                    lowercaseRule.classList.remove('valid');
+                    lowercaseRule.classList.add('invalid');
+                }
+                
+                // Number rule
+                const numberRule = document.querySelector('#password-validation [data-rule="number"]');
+                if (/[0-9]/.test(password)) {
+                    numberRule.classList.remove('invalid');
+                    numberRule.classList.add('valid');
+                } else {
+                    numberRule.classList.remove('valid');
+                    numberRule.classList.add('invalid');
+                }
+                
+                // Special character rule
+                const specialRule = document.querySelector('#password-validation [data-rule="special"]');
+                if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+                    specialRule.classList.remove('invalid');
+                    specialRule.classList.add('valid');
+                } else {
+                    specialRule.classList.remove('valid');
+                    specialRule.classList.add('invalid');
+                }
+            });
+            
+            // Birthdate validation
+            const birthdateInput = document.querySelector('#{{ form.birthdate.vars.id }}');
+            birthdateInput.addEventListener('change', function() {
+                const birthdate = new Date(this.value);
+                
+                // Required rule
+                const requiredRule = document.querySelector('#birthdate-validation [data-rule="required"]');
+                if (this.value) {
+                    requiredRule.classList.remove('invalid');
+                    requiredRule.classList.add('valid');
+                } else {
+                    requiredRule.classList.remove('valid');
+                    requiredRule.classList.add('invalid');
+                }
+                
+                // Age rule
+                const ageRule = document.querySelector('#birthdate-validation [data-rule="age"]');
+                if (this.value) {
+                    const today = new Date();
+                    let age = today.getFullYear() - birthdate.getFullYear();
+                    const monthDiff = today.getMonth() - birthdate.getMonth();
+                    
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthdate.getDate())) {
+                        age--;
+                    }
+                    
+                    if (age >= 18) {
+                        ageRule.classList.remove('invalid');
+                        ageRule.classList.add('valid');
+                    } else {
+                        ageRule.classList.remove('valid');
+                        ageRule.classList.add('invalid');
+                    }
+                }
+            });
+            
+            // Form submission validation
+            const form = document.getElementById('edit-form');
+            form.addEventListener('submit', function(event) {
+                const invalidRules = document.querySelectorAll('.validation-message .invalid');
+                if (invalidRules.length > 0) {
+                    event.preventDefault();
+                    alert('Veuillez corriger les erreurs dans le formulaire avant de soumettre.');
+                }
+            });
+        });
+    </script>
+    
+    <style>
+        /* Style global */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 100%;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Style des champs du formulaire */
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    font-weight: bold;
+    color: #555;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Style des messages de validation */
+.validation-message {
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.validation-message ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.validation-message li {
+    padding: 3px 0;
+}
+
+.validation-message li.valid {
+    color: green;
+}
+
+.validation-message li.valid::before {
+    content: "✓ ";
+    font-weight: bold;
+}
+
+.validation-message li.invalid {
+    color: red;
+}
+
+.validation-message li.invalid::before {
+    content: "✗ ";
+    font-weight: bold;
+}
+
+/* Style des boutons */
+button[type='submit'], .btn-link a {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+button[type='submit'] {
+    background-color: #007bff;
+    color: white;
+    border: none;
+}
+
+button[type='submit']:hover {
+    background-color: #0056b3;
+}
+
+.btn-link a {
+    background-color: transparent;
+    color: #007bff;
+    border: 1px solid #007bff;
+}
+
+.btn-link a:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+    </style>
 {% endblock %}

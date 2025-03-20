@@ -1,35 +1,165 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Profile{% endblock %}
+{% block title %}My Profile{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .profile-header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .profile-header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .profile-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 2rem;
+        }
+        
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #fff;
+            margin: 2rem auto 1rem;
+        }
+        
+        .profile-details {
+            padding: 1rem 2rem 2rem;
+        }
+        
+        .profile-info {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            row-gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .profile-label {
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .profile-value {
+            color: #333;
+        }
+        
+        .bio-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .bio-label {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background-color: #4a6fdc;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a5fc6;
+        }
+        
+        .btn-secondary {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e5e5e5;
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
-    <h1>Profile</h1>
-    <table>
-        <tr>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Genre</th>
-            <th>Orientation</th>
-            <th>Bio</th>
-            <th>Birthdate</th>
-            <th>Picture</th>
-        </tr>
-        <tr>
-            <td>{{ user.username }}</td>
-            <td>{{ user.email }}</td>
-            <td>{{ user.gender }}</td>
-            <td>{{ user.orientation }}</td>
-            <td>{{ user.bio }}</td>
-            <td>{{ user.birthdate|date('Y-m-d') }}</td>
-            <td>
-                {% if user.picture %}
-                    <img src="{{ asset('uploads/' ~ user.picture) }}" alt="Profile Picture" style="max-width: 150px; max-height: 150px;">
-                {% else %}
-                    <img src="{{ asset('uploads/default.png') }}" alt="Profile Picture" style="max-width: 150px; max-height: 150px;">
-                {% endif %}
-            </td>
-        </tr>
-    </table>
-
-    <a href="{{ path('profile_edit') }}">Edit</a>
+    <div class="profile-container">
+        <div class="profile-header">
+            <h1>My Profile</h1>
+        </div>
+        
+        <div class="profile-card">
+            {% if user.picture %}
+                <img class="profile-image" src="{{ asset('uploads/' ~ user.picture) }}" alt="{{ user.username }}'s Profile Picture">
+            {% else %}
+                <img class="profile-image" src="{{ asset('uploads/default.png') }}" alt="Default Profile Picture">
+            {% endif %}
+            
+            <div class="profile-details">
+                <div class="profile-info">
+                    <div class="profile-label">Username:</div>
+                    <div class="profile-value">{{ user.username }}</div>
+                    
+                    <div class="profile-label">Email:</div>
+                    <div class="profile-value">{{ user.email }}</div>
+                    
+                    <div class="profile-label">Gender:</div>
+                    <div class="profile-value">{{ user.gender }}</div>
+                    
+                    <div class="profile-label">Birthdate:</div>
+                    <div class="profile-value">{{ user.birthdate|date('F d, Y') }}</div>
+                    
+                    <div class="profile-label">ID Card:</div>
+                    <div class="profile-value">
+                        {% if user.idCard %}
+                            {% if user.idCardVerified %}
+                                <span class="badge bg-success">Verified</span>
+                            {% else %}
+                                <span class="badge bg-warning">Pending Verification</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge bg-danger">Not Uploaded</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="bio-section">
+                    <div class="bio-label">About me:</div>
+                    <div class="profile-value">{{ user.bio|nl2br }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <a href="{{ path('profile_edit') }}" class="btn btn-primary">Edit Profile</a>
+            <a href="{{ path('profile_id_verification') }}" class="btn btn-primary">ID Verification</a>
+            <a href="{{ path('home') }}" class="btn btn-secondary">Back to Home</a>
+        </div>
+    </div>
 {% endblock %}

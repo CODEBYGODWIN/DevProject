@@ -32,24 +32,22 @@ class UserType extends AbstractType
                     'Autre' => 'other',
                 ],
             ])
-            ->add('orientation', ChoiceType::class, [
-                'choices' => [
-                    'Hétérosexuel' => 'heterosexual',
-                    'Homosexuel' => 'homosexual',
-                    'Lesbienne' => 'lesbian',
-                    'Pansexuel' => 'pansexual',
-                    'Asexuel' => 'asexual',
-                    'Non-binaire' => 'non-binary',
-                    'Bisexuel' => 'bisexual',
-                    'Autre' => 'other',
-                ],
-            ])
+          
             ->add('bio', TextType::class, ['required' => false])
             ->add('picture', FileType::class, [
                 'required' => false,
                 'data_class' => null, 
             ])
-            
+            ->add('idCard', FileType::class, [
+                'label' => 'Carte d\'identité (obligatoire pour la vérification)',
+                'required' => true,
+                'data_class' => null,
+                'attr' => [
+                    'accept' => 'image/jpeg,image/png,application/pdf',
+                    'class' => 'form-control'
+                ],
+                'help' => 'Veuillez télécharger une copie lisible de votre carte d\'identité pour vérification. Formats acceptés: JPEG, PNG, PDF.'
+            ])
             ->add('save', SubmitType::class, ['label' => 'Créer un compte']);
     }
 

@@ -32,25 +32,14 @@ class UserEditType extends AbstractType
                     'Autre' => 'other',
                 ],
             ])
-            ->add('orientation', ChoiceType::class, [
-                'choices' => [
-                    'Hétérosexuel' => 'heterosexual',
-                    'Homosexuel' => 'homosexual',
-                    'Lesbienne' => 'lesbian',
-                    'Pansexuel' => 'pansexual',
-                    'Asexuel' => 'asexual',
-                    'Non-binaire' => 'non-binary',
-                    'Bisexuel' => 'bisexual',
-                    'Autre' => 'other',
-                ],
-            ])
+          
             ->add('bio', TextType::class, ['required' => false])
             ->add('picture', FileType::class, [
                 'required' => false,
                 'data_class' => null, 
             ])
             
-            ->add('save', SubmitType::class, ['label' => 'Mettre à jour']);
+            ->add('save', SubmitType::class, ['label' => 'Modifier']);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
