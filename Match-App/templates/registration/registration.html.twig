@@ -124,209 +124,148 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Email validation
+        function initializeRegistrationForm() {
+            console.log("Chargement du script d'inscription...");
+
+            // Sélection des champs du formulaire
             const emailInput = document.querySelector('#{{ form.email.vars.id }}');
-            emailInput.addEventListener('input', function() {
-                const email = this.value;
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                
-                // Length rule
-                const lengthRule = document.querySelector('#email-validation [data-rule="length"]');
-                if (email.length >= 8) {
-                    lengthRule.classList.remove('invalid');
-                    lengthRule.classList.add('valid');
-                } else {
-                    lengthRule.classList.remove('valid');
-                    lengthRule.classList.add('invalid');
-                }
-                
-                // Format rule
-                const formatRule = document.querySelector('#email-validation [data-rule="format"]');
-                if (emailRegex.test(email)) {
-                    formatRule.classList.remove('invalid');
-                    formatRule.classList.add('valid');
-                } else {
-                    formatRule.classList.remove('valid');
-                    formatRule.classList.add('invalid');
-                }
-            });
-            
-            // Username validation
             const usernameInput = document.querySelector('#{{ form.username.vars.id }}');
-            usernameInput.addEventListener('input', function() {
-                const username = this.value;
-                const usernameRegex = /^[a-zA-Z0-9_-]+$/;
-                
-                // Length rule
-                const lengthRule = document.querySelector('#username-validation [data-rule="length"]');
-                if (username.length >= 6) {
-                    lengthRule.classList.remove('invalid');
-                    lengthRule.classList.add('valid');
-                } else {
-                    lengthRule.classList.remove('valid');
-                    lengthRule.classList.add('invalid');
-                }
-                
-                // Format rule
-                const formatRule = document.querySelector('#username-validation [data-rule="format"]');
-                if (usernameRegex.test(username)) {
-                    formatRule.classList.remove('invalid');
-                    formatRule.classList.add('valid');
-                } else {
-                    formatRule.classList.remove('valid');
-                    formatRule.classList.add('invalid');
-                }
-            });
-            
-            // Password validation
             const passwordInput = document.querySelector('#{{ form.password.vars.id }}');
-            passwordInput.addEventListener('input', function() {
-                const password = this.value;
-                
-                // Length rule
-                const lengthRule = document.querySelector('#password-validation [data-rule="length"]');
-                if (password.length >= 8) {
-                    lengthRule.classList.remove('invalid');
-                    lengthRule.classList.add('valid');
-                } else {
-                    lengthRule.classList.remove('valid');
-                    lengthRule.classList.add('invalid');
-                }
-                
-                // Uppercase rule
-                const uppercaseRule = document.querySelector('#password-validation [data-rule="uppercase"]');
-                if (/[A-Z]/.test(password)) {
-                    uppercaseRule.classList.remove('invalid');
-                    uppercaseRule.classList.add('valid');
-                } else {
-                    uppercaseRule.classList.remove('valid');
-                    uppercaseRule.classList.add('invalid');
-                }
-                
-                // Lowercase rule
-                const lowercaseRule = document.querySelector('#password-validation [data-rule="lowercase"]');
-                if (/[a-z]/.test(password)) {
-                    lowercaseRule.classList.remove('invalid');
-                    lowercaseRule.classList.add('valid');
-                } else {
-                    lowercaseRule.classList.remove('valid');
-                    lowercaseRule.classList.add('invalid');
-                }
-                
-                // Number rule
-                const numberRule = document.querySelector('#password-validation [data-rule="number"]');
-                if (/[0-9]/.test(password)) {
-                    numberRule.classList.remove('invalid');
-                    numberRule.classList.add('valid');
-                } else {
-                    numberRule.classList.remove('valid');
-                    numberRule.classList.add('invalid');
-                }
-                
-                // Special character rule
-                const specialRule = document.querySelector('#password-validation [data-rule="special"]');
-                if (/[^A-Za-z0-9]/.test(password)) {
-                    specialRule.classList.remove('invalid');
-                    specialRule.classList.add('valid');
-                } else {
-                    specialRule.classList.remove('valid');
-                    specialRule.classList.add('invalid');
-                }
-            });
-            
-            // Birthdate validation
             const birthdateInput = document.querySelector('#{{ form.birthdate.vars.id }}');
-            birthdateInput.addEventListener('change', function() {
-                const birthdate = new Date(this.value);
-                const today = new Date();
-                const age = today.getFullYear() - birthdate.getFullYear();
-                
-                // Required rule
-                const requiredRule = document.querySelector('#birthdate-validation [data-rule="required"]');
-                if (this.value) {
-                    requiredRule.classList.remove('invalid');
-                    requiredRule.classList.add('valid');
-                } else {
-                    requiredRule.classList.remove('valid');
-                    requiredRule.classList.add('invalid');
-                }
-                
-                // Age rule
-                const ageRule = document.querySelector('#birthdate-validation [data-rule="age"]');
-                if (age >= 18) {
-                    ageRule.classList.remove('invalid');
-                    ageRule.classList.add('valid');
-                } else {
-                    ageRule.classList.remove('valid');
-                    ageRule.classList.add('invalid');
-                }
-            });
-            
-            // ID Card validation and preview
             const idCardInput = document.querySelector('#{{ form.idCard.vars.id }}');
-            const idCardPreview = document.querySelector('.id-card-preview');
-            const idCardPreviewImg = document.querySelector('#id-card-preview-img');
-            
-            idCardInput.addEventListener('change', function() {
-                const file = this.files[0];
-                
-                // Required rule
-                const requiredRule = document.querySelector('#idcard-validation [data-rule="required"]');
-                if (file) {
-                    requiredRule.classList.remove('invalid');
-                    requiredRule.classList.add('valid');
-                } else {
-                    requiredRule.classList.remove('valid');
-                    requiredRule.classList.add('invalid');
-                }
-                
-                // Format rule
-                const formatRule = document.querySelector('#idcard-validation [data-rule="format"]');
-                const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-                if (file && validTypes.includes(file.type)) {
-                    formatRule.classList.remove('invalid');
-                    formatRule.classList.add('valid');
-                    
-                    // Show preview for images only
-                    if (file.type.startsWith('image/')) {
+            const pictureInput = document.querySelector('#{{ form.picture.vars.id }}');
+
+            // Fonction de validation générique
+            function validateField(input, rules) {
+                if (!input) return;
+                rules.forEach(({ selector, condition }) => {
+                    const ruleElement = document.querySelector(selector);
+                    if (ruleElement) {
+                        if (condition()) {
+                            ruleElement.classList.remove('invalid');
+                            ruleElement.classList.add('valid');
+                        } else {
+                            ruleElement.classList.remove('valid');
+                            ruleElement.classList.add('invalid');
+                        }
+                    }
+                });
+            }
+
+            // Validation email
+            if (emailInput) {
+                emailInput.addEventListener('input', function () {
+                    const email = this.value;
+                    validateField(emailInput, [
+                        {
+                            selector: '#email-validation [data-rule="length"]',
+                            condition: () => email.length >= 8
+                        },
+                        {
+                            selector: '#email-validation [data-rule="format"]',
+                            condition: () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+                        }
+                    ]);
+                });
+            }
+
+            // Validation nom d'utilisateur
+            if (usernameInput) {
+                usernameInput.addEventListener('input', function () {
+                    const username = this.value;
+                    validateField(usernameInput, [
+                        {
+                            selector: '#username-validation [data-rule="length"]',
+                            condition: () => username.length >= 6
+                        },
+                        {
+                            selector: '#username-validation [data-rule="format"]',
+                            condition: () => /^[a-zA-Z0-9_-]+$/.test(username)
+                        }
+                    ]);
+                });
+            }
+
+            // Validation mot de passe
+            if (passwordInput) {
+                passwordInput.addEventListener('input', function () {
+                    const password = this.value;
+                    validateField(passwordInput, [
+                        { selector: '#password-validation [data-rule="length"]', condition: () => password.length >= 8 },
+                        { selector: '#password-validation [data-rule="uppercase"]', condition: () => /[A-Z]/.test(password) },
+                        { selector: '#password-validation [data-rule="lowercase"]', condition: () => /[a-z]/.test(password) },
+                        { selector: '#password-validation [data-rule="number"]', condition: () => /[0-9]/.test(password) },
+                        { selector: '#password-validation [data-rule="special"]', condition: () => /[^A-Za-z0-9]/.test(password) }
+                    ]);
+                });
+            }
+
+            // Validation date de naissance
+            if (birthdateInput) {
+                birthdateInput.addEventListener('change', function () {
+                    const birthdate = new Date(this.value);
+                    const today = new Date();
+                    const age = today.getFullYear() - birthdate.getFullYear();
+                    validateField(birthdateInput, [
+                        { selector: '#birthdate-validation [data-rule="required"]', condition: () => !!this.value },
+                        { selector: '#birthdate-validation [data-rule="age"]', condition: () => age >= 18 }
+                    ]);
+                });
+            }
+
+            // Prévisualisation carte d'identité
+            if (idCardInput) {
+                idCardInput.addEventListener('change', function () {
+                    const file = this.files[0];
+                    const idCardPreview = document.querySelector('.id-card-preview');
+                    const idCardPreviewImg = document.querySelector('#id-card-preview-img');
+                    const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+
+                    validateField(idCardInput, [
+                        { selector: '#idcard-validation [data-rule="required"]', condition: () => !!file },
+                        { selector: '#idcard-validation [data-rule="format"]', condition: () => file && validTypes.includes(file.type) }
+                    ]);
+
+                    if (file && file.type.startsWith('image/')) {
                         const reader = new FileReader();
-                        reader.onload = function(e) {
+                        reader.onload = function (e) {
                             idCardPreviewImg.src = e.target.result;
                             idCardPreview.style.display = 'block';
-                        }
+                        };
                         reader.readAsDataURL(file);
                     } else {
                         idCardPreview.style.display = 'none';
                     }
-                } else {
-                    formatRule.classList.remove('valid');
-                    formatRule.classList.add('invalid');
-                    idCardPreview.style.display = 'none';
-                }
-            });
-            
-            // Picture preview
-            const pictureInput = document.querySelector('#{{ form.picture.vars.id }}');
-            const picturePreview = document.querySelector('.picture-preview');
-            const picturePreviewImg = document.querySelector('#picture-preview-img');
-            
-            pictureInput.addEventListener('change', function() {
-                const file = this.files[0];
-                if (file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        picturePreviewImg.src = e.target.result;
-                        picturePreview.style.display = 'block';
+                });
+            }
+
+            // Prévisualisation photo de profil
+            if (pictureInput) {
+                pictureInput.addEventListener('change', function () {
+                    const file = this.files[0];
+                    const picturePreview = document.querySelector('.picture-preview');
+                    const picturePreviewImg = document.querySelector('#picture-preview-img');
+
+                    if (file && file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            picturePreviewImg.src = e.target.result;
+                            picturePreview.style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        picturePreview.style.display = 'none';
                     }
-                    reader.readAsDataURL(file);
-                } else {
-                    picturePreview.style.display = 'none';
-                }
-            });
-        });
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeRegistrationForm);
+
+        document.addEventListener('turbo:load', initializeRegistrationForm);
     </script>
-    
+
+
     <style>
         body {
             font-family: 'Poppins', sans-serif;
