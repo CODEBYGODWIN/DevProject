@@ -1,0 +1,68 @@
+{% block content %}
+    <div class="profile-popup">
+        <div class="profile-header">
+            <div class="profile-image-container">
+                {% if user.picture %}
+                    <img src="{{ asset('uploads/' ~ user.picture) }}" alt="{{ user.username }}" class="profile-image">
+                {% else %}
+                    <img src="{{ asset('uploads/default.png') }}" alt="Photo par défaut" class="profile-image">
+                {% endif %}
+                
+            </div>
+            <h1>{{ user.username }}</h1>
+            <div class="profile-email">Membre depuis {{ user.createdAt|date('d/m/Y') }}</div>
+        </div>
+        
+        <div class="profile-details">
+            <div class="profile-section">
+                <div class="profile-section-title">Informations personnelles</div>
+                <div class="profile-info">
+                    <div class="profile-info-row">
+                        <div class="profile-field">
+                            <div class="profile-field-label">Nom d'utilisateur</div>
+                            <div class="profile-field-value">{{ user.username }}</div>
+                        </div>
+                        <div class="profile-field">
+                            <div class="profile-field-label">Genre</div>
+                            <div class="profile-field-value">{{ user.gender }}</div>
+                        </div>
+                    </div>
+                    <div class="profile-field">
+                        <div class="profile-field-label">Date de naissance</div>
+                        <div class="profile-field-value">{{ user.birthdate|date('d/m/Y') }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if user.inou %}
+            <div class="profile-section">
+                <div class="profile-section-title">Préférences</div>
+                <div class="profile-info">
+                    <div class="profile-field">
+                        <div class="profile-field-label">Orientation</div>
+                        <div class="profile-field-value">{{ user.inou.q1 }}</div>
+                    </div>
+                    <div class="profile-field">
+                        <div class="profile-field-label">But</div>
+                        <div class="profile-field-value">{{ user.inou.q2 }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if user.bio %}
+            <div class="profile-section bio-section">
+                <div class="profile-section-title">À propos</div>
+                <div class="profile-field">
+                    <div class="profile-field-value">{{ user.bio|nl2br }}</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="button-group">
+            <button type="button" class="btn btn-secondary close-popup">Fermer</button>
+            
+        </div>
+    </div>
+{% endblock %}
