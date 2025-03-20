@@ -6,13 +6,7 @@ function initHome() {
         return;
     }
     
-    const styleSheets = document.styleSheets;
-    for (let i = 0; i < styleSheets.length; i++) {
-        try {
-            const rules = styleSheets[i].cssRules;
-        } catch (e) {}
-    }
-    
+    console.log('Initializing home...');
     window.homeInitializationInProgress = true;
     
     if (window.homeEventSource) {
@@ -33,7 +27,6 @@ function initHome() {
         window.homeEventSource.onmessage = function(event) {
             try {
                 const data = JSON.parse(event.data);
-                
                 let chatId = data.chatId;
                 
                 if (!chatId && event.lastEventId) {
@@ -59,25 +52,21 @@ function initHome() {
                     if (data.wasUnread === true && data.sender && data.sender !== currentUserId) {
                         const currentCount = parseInt(unreadCounter.textContent) || 0;
                         if (currentCount > 0) {
-                            const newCount = currentCount - 1;
-                            unreadCounter.textContent = newCount;
-                            unreadCounter.style.display = newCount > 0 ? 'flex' : 'none';
+                            unreadCounter.textContent = currentCount - 1;
+                            unreadCounter.style.display = currentCount > 1 ? 'flex' : 'none';
                         }
                     }
-                } else if (data.action === 'read_all') {
-                    if (data.reader === currentUserId) {
-                        unreadCounter.textContent = '0';
-                        unreadCounter.style.display = 'none';
-                    }
+                } else if (data.action === 'read_all' && data.reader === currentUserId) {
+                    unreadCounter.textContent = '0';
+                    unreadCounter.style.display = 'none';
                 } else if (data.sender && data.sender.id !== currentUserId) {
                     unreadCounter.style.display = 'flex';
-                    const currentCount = parseInt(unreadCounter.textContent) || 0;
-                    unreadCounter.textContent = currentCount + 1;
+                    unreadCounter.textContent = (parseInt(unreadCounter.textContent) || 0) + 1;
                 }
             } catch (error) {
                 console.error('Error processing message:', error);
             }
-        }
+        };
         
         window.homeEventSource.onerror = function(error) {
             console.error('EventSource error:', error);
@@ -95,20 +84,30 @@ function initHome() {
                 }
             }, 3000);
         };
-        
-        document.querySelectorAll('.conversation-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const chatId = this.getAttribute('href').split('/').pop();
-                const unreadCounter = document.getElementById('unread-' + chatId);
-                if (unreadCounter) {
-                    unreadCounter.style.display = 'none';
-                    unreadCounter.textContent = '0';
-                }
-            });
-        });
     }
     
+    document.querySelectorAll('.conversation-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const chatId = this.getAttribute('href').split('/').pop();
+            const unreadCounter = document.getElementById('unread-' + chatId);
+            if (unreadCounter) {
+                unreadCounter.style.display = 'none';
+                unreadCounter.textContent = '0';
+            }
+        });
+    });
+    
     window.homeInitialized = true;
+    window.homeInitializationInProgress = false;
+}
+
+function resetHome() {
+    console.log('Resetting home state...');
+    if (window.homeEventSource) {
+        window.homeEventSource.close();
+        window.homeEventSource = null;
+    }
+    window.homeInitialized = false;
     window.homeInitializationInProgress = false;
 }
 
@@ -120,18 +119,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'visible' && document.querySelector('.container') && !window.homeInitialized) {
+        console.log('Reinitializing home after returning to page');
         initHome();
     }
 });
 
 window.addEventListener('beforeunload', function() {
-    if (window.homeEventSource) {
-        window.homeEventSource.close();
-        window.homeEventSource = null;
-    }
-    
-    window.homeInitialized = false;
-    window.homeInitializationInProgress = false;
+    resetHome();
+});
+
+document.querySelectorAll('a[href="/profile"]').forEach(link => {
+    link.addEventListener('click', function() {
+        resetHome();
+    });
 });
 
 if (!window.homeInitialized && !window.homeInitializationInProgress) {

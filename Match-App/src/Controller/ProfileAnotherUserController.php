@@ -25,7 +25,7 @@ class ProfileAnotherUserController extends AbstractController
         
      
         if ($request->isXmlHttpRequest()) {
-            return $this->render('profile/view_popup.html.twig', [
+            return $this->render('Profile/popup.html.twig', [
                 'user' => $user,
             ]);
         }

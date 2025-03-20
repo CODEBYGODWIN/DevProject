@@ -150,7 +150,7 @@ class ProfileController extends AbstractController {
                 try {
                     $idCardFile->move($idCardDirectory, $newIdCardFilename);
                     $user->setIdCard($newIdCardFilename);
-                    $user->setIdCardVerified(false); // Réinitialiser le statut de vérification
+                    $user->setIdCardVerified(false);
                     $dm->flush();
                     
                     $this->addFlash('success', 'Votre carte d\'identité a été téléchargée avec succès. Elle sera vérifiée prochainement.');
