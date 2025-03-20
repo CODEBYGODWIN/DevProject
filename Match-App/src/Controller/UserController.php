@@ -75,7 +75,8 @@ class UserController extends AbstractController
             $dm->persist($user);
             $dm->flush();
             
-            $this->addFlash('success', 'Votre compte a été créé avec succès !');
+            $this->addFlash('success', 'Votre compte a été créé avec succès ! Veuillez vous connecter.');
+            
             return $this->redirectToRoute('login');
         }
         
