@@ -34,11 +34,12 @@ function initChat() {
     }
 
     function createMessageElement(message) {
-        if (!message || !message.sender || !message.id) {
+        if (!message || !message.id) {
             return null;
         }
 
-        const isCurrentUser = message.sender.id === currentUserId;
+        const sender = message.sender || { id: 'unknown' };
+        const isCurrentUser = sender.id === currentUserId;
 
         const messageContainer = document.createElement('div');
         messageContainer.className = `message-container ${isCurrentUser ? 'current-user' : ''}`;
@@ -50,13 +51,13 @@ function initChat() {
             avatar.style.width = '32px';
             avatar.style.height = '32px';
 
-            const imgSrc = message.sender.picture 
-                ? `${baseUploadPath}/uploads/${message.sender.picture}` 
+            const imgSrc = sender.picture 
+                ? `${baseUploadPath}/uploads/${sender.picture}` 
                 : defaultImagePath;
 
             const img = document.createElement('img');
             img.src = imgSrc;
-            img.alt = message.sender.username;
+            img.alt = sender.username || 'Utilisateur';
 
             avatar.appendChild(img);
             messageContainer.appendChild(avatar);
@@ -76,7 +77,7 @@ function initChat() {
             audio.controls = true;
             
             const source = document.createElement('source');
-            source.src = message.audioUrl.startsWith('/') ? message.audioUrl : '/' + message.audioUrl;
+            source.src = baseUploadPath + (message.audioUrl.startsWith('/') ? message.audioUrl : '/' + message.audioUrl);
             source.type = 'audio/webm';
             
             audio.appendChild(source);
@@ -88,7 +89,29 @@ function initChat() {
 
         const messageTime = document.createElement('div');
         messageTime.className = 'message-time';
-        messageTime.textContent = message.timestamp || '';
+        
+        // Correction du bug d'affichage de date
+        let timestamp = '';
+        if (message.timestamp) {
+            try {
+                const date = new Date(message.timestamp);
+                // Vérifier si la date est valide
+                if (!isNaN(date.getTime())) {
+                    timestamp = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                } else {
+                    // Utiliser l'heure actuelle si la date est invalide
+                    timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                }
+            } catch (e) {
+                // En cas d'erreur, utiliser l'heure actuelle
+                timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            }
+        } else {
+            // Si pas de timestamp, utiliser l'heure actuelle
+            timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+        
+        messageTime.textContent = timestamp;
 
         if (isCurrentUser) {
             const readIndicator = document.createElement('span');
@@ -149,6 +172,7 @@ function initChat() {
             messageInput.focus();
         })
         .catch(error => {
+            console.error('Error sending message:', error);
             alert('Erreur lors de l\'envoi du message. Veuillez réessayer.');
         });
     }
@@ -164,6 +188,7 @@ function initChat() {
             return response.json();
         })
         .catch(error => {
+            console.error('Error deleting message:', error);
             alert('Erreur lors de la suppression du message. Veuillez réessayer.');
         });
     }
@@ -181,7 +206,9 @@ function initChat() {
             }
             return response.json();
         })
-        .catch(error => {});
+        .catch(error => {
+            console.error('Error marking messages as read:', error);
+        });
     }
 
     function initAudioRecording() {
@@ -206,9 +233,11 @@ function initChat() {
                     };
                 })
                 .catch(error => {
+                    console.error('Microphone access error:', error);
                     alert("Impossible d'accéder au microphone. Veuillez vérifier vos paramètres.");
                 });
         } else {
+            console.warn('Audio recording not supported in this browser');
             alert("Votre navigateur ne supporte pas l'enregistrement audio.");
             audioButton.style.display = 'none';
         }
@@ -216,6 +245,11 @@ function initChat() {
 
     audioButton.addEventListener('click', function() {
         if (!isRecording) {
+            if (!mediaRecorder) {
+                alert("Le système d'enregistrement n'est pas prêt. Veuillez réessayer.");
+                return;
+            }
+            
             audioChunks = [];
             mediaRecorder.start();
             isRecording = true;
@@ -262,6 +296,7 @@ function initChat() {
     const mercureEventUrl = new URL(mercureUrl);
     mercureEventUrl.searchParams.append('topic', `chat/${chatId}`);
     window.chatEventSource = new EventSource(mercureEventUrl);
+    
     window.chatEventSource.onmessage = function(event) {
         try {
             const data = JSON.parse(event.data);
@@ -278,7 +313,8 @@ function initChat() {
                 markMessagesAsRead();
             }
 
-            if (!data || !data.sender || !data.id) {
+            if (!data || !data.id) {
+                console.error('Invalid message data', data);
                 return;
             }
 
@@ -294,10 +330,13 @@ function initChat() {
 
                 scrollToBottom();
             }
-        } catch (error) {}
+        } catch (error) {
+            console.error('Error processing message event:', error);
+        }
     };
 
     window.chatEventSource.onerror = function(error) {
+        console.error('EventSource error:', error);
         window.chatInitialized = false;
         window.chatInitializationInProgress = false;
         
@@ -308,6 +347,7 @@ function initChat() {
         
         setTimeout(() => {
             if (!window.chatInitialized && !window.chatInitializationInProgress && document.querySelector('.chat-container')) {
+                console.log('Attempting to reconnect Mercure...');
                 initChat();
             }
         }, 3000);
@@ -337,6 +377,15 @@ document.addEventListener('visibilitychange', function() {
                 headers: {
                     'Content-Type': 'application/json'
                 }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .catch(error => {
+                console.error('Error marking messages as read on visibility change:', error);
             });
         }
     }

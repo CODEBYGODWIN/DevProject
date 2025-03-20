@@ -34,13 +34,12 @@ function initHome() {
             try {
                 const data = JSON.parse(event.data);
                 
-                let chatId;
-                if (data.chatId) {
-                    chatId = data.chatId;
-                } else if (event.lastEventId) {
-                    const parts = event.lastEventId.split('/');
-                    if (parts.length > 0) {
-                        chatId = parts[parts.length - 1];
+                let chatId = data.chatId;
+                
+                if (!chatId && event.lastEventId) {
+                    const match = event.lastEventId.match(/chat\/(\d+)/);
+                    if (match && match[1]) {
+                        chatId = match[1];
                     }
                 }
                 
@@ -70,7 +69,7 @@ function initHome() {
                         unreadCounter.textContent = '0';
                         unreadCounter.style.display = 'none';
                     }
-                } else if (data.sender && data.sender.id && data.sender.id !== currentUserId) {
+                } else if (data.sender && data.sender.id !== currentUserId) {
                     unreadCounter.style.display = 'flex';
                     const currentCount = parseInt(unreadCounter.textContent) || 0;
                     unreadCounter.textContent = currentCount + 1;
@@ -78,7 +77,7 @@ function initHome() {
             } catch (error) {
                 console.error('Error processing message:', error);
             }
-        };
+        }
         
         window.homeEventSource.onerror = function(error) {
             console.error('EventSource error:', error);
