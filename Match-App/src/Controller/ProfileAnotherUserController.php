@@ -30,7 +30,7 @@ class ProfileAnotherUserController extends AbstractController
             ]);
         }
         
-        // Redirection vers la page d'accueil pour les requêtes non-AJAX
+        
         return $this->redirectToRoute('home');
     }
 }
