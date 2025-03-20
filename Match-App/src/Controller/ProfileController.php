@@ -14,10 +14,12 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 class ProfileController extends AbstractController {
     #[Route('/profile', name: 'profile')]
-    public function showProfile(SessionInterface $session, DocumentManager $dm): Response
+    public function showProfile(Request $request, SessionInterface $session, DocumentManager $dm): Response
     {
+      
         $userData = $session->get('user');
         
+   
         if (!$userData) {
             return $this->redirectToRoute('login');
         }
