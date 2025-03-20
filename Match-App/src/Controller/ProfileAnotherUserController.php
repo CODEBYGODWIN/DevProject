@@ -2,9 +2,10 @@
 
 namespace App\Controller;
 
-use App\Document\User; // Notez qu'on utilise Document et non Entity
-use Doctrine\ODM\MongoDB\DocumentManager; // DocumentManager pour MongoDB
+use App\Document\User; 
+use Doctrine\ODM\MongoDB\DocumentManager; 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -14,7 +15,7 @@ class ProfileAnotherUserController extends AbstractController
     /**
      * @Route("/profile/{id}", name="profile_view")
      */
-    public function view($id, DocumentManager $documentManager): Response
+    public function view($id, DocumentManager $documentManager, Request $request): Response
     {
         $user = $documentManager->getRepository(User::class)->find($id);
         
@@ -22,8 +23,14 @@ class ProfileAnotherUserController extends AbstractController
             throw new NotFoundHttpException('Utilisateur non trouvé');
         }
         
-        return $this->render('profile/view.html.twig', [
-            'user' => $user,
-        ]);
+     
+        if ($request->isXmlHttpRequest()) {
+            return $this->render('profile/view_popup.html.twig', [
+                'user' => $user,
+            ]);
+        }
+        
+        // Redirection vers la page d'accueil pour les requêtes non-AJAX
+        return $this->redirectToRoute('home');
     }
 }

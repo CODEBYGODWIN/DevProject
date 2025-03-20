@@ -28,13 +28,13 @@ class LoginController extends AbstractController {
                 return $this->redirectToRoute('login');
             }
             
-            // Vérifier si la carte d'identité a été vérifiée
+            
             if ($user->getIdCard() && !$user->isIdCardVerified()) {
                 $this->addFlash('warning', 'Votre compte est en attente de vérification de votre carte d\'identité. Veuillez patienter.');
                 return $this->redirectToRoute('login');
             }
             
-            // Vérifier si l'utilisateur a téléchargé une carte d'identité
+            
             if (!$user->getIdCard()) {
                 $this->addFlash('warning', 'Vous devez télécharger votre carte d\'identité pour accéder à votre compte. Veuillez contacter l\'administrateur.');
                 return $this->redirectToRoute('login');

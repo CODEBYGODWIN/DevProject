@@ -48,12 +48,12 @@ class UserController extends AbstractController
                 }
             }
             
-            // Traitement de la carte d'identité
+            
             $idCardFile = $form->get('idCard')->getData();
             if ($idCardFile) {
                 $idCardDirectory = $this->getParameter('uploads_directory') . '/id_cards';
                 
-                // Créer le répertoire s'il n'existe pas
+                
                 if (!file_exists($idCardDirectory)) {
                     mkdir($idCardDirectory, 0755, true);
                 }
@@ -63,7 +63,7 @@ class UserController extends AbstractController
                 try {
                     $idCardFile->move($idCardDirectory, $newIdCardFilename);
                     $user->setIdCard($newIdCardFilename);
-                    $user->setIdCardVerified(false); // Par défaut, la carte n'est pas vérifiée
+                    $user->setIdCardVerified(false); 
                 } catch (FileException $e) {
                     $this->addFlash('error', 'Une erreur est survenue lors de l\'upload de votre carte d\'identité.');
                 }

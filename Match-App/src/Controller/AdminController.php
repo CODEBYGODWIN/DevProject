@@ -17,7 +17,7 @@ class AdminController extends AbstractController
         DocumentManager $dm
     ): Response
     {
-        // Récupérer tous les utilisateurs avec une carte d'identité non vérifiée
+        
         $users = $dm->getRepository(User::class)->findBy(['idCardVerified' => false, 'idCard' => ['$ne' => null]]);
         
         return $this->render('admin/id_verification.html.twig', [
@@ -61,7 +61,7 @@ class AdminController extends AbstractController
             return $this->redirectToRoute('admin_id_verification');
         }
         
-        // Supprimer la carte d'identité
+        
         $idCardPath = $this->getParameter('uploads_directory') . '/id_cards/' . $user->getIdCard();
         if (file_exists($idCardPath)) {
             unlink($idCardPath);

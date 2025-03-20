@@ -132,12 +132,12 @@ class ProfileController extends AbstractController {
             if ($idCardFile) {
                 $idCardDirectory = $this->getParameter('uploads_directory') . '/id_cards';
                 
-                // Créer le répertoire s'il n'existe pas
+               
                 if (!file_exists($idCardDirectory)) {
                     mkdir($idCardDirectory, 0755, true);
                 }
                 
-                // Supprimer l'ancienne carte d'identité si elle existe
+                
                 if ($user->getIdCard()) {
                     $oldFile = $idCardDirectory . '/' . $user->getIdCard();
                     if (file_exists($oldFile)) {
