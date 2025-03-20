@@ -1,0 +1,99 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Compte en attente de validation{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .pending-container {
+            max-width: 600px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .pending-icon {
+            font-size: 5rem;
+            color: #f5a623;
+            margin-bottom: 1.5rem;
+        }
+        
+        .pending-title {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+        
+        .pending-message {
+            color: #555;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        
+        .pending-info {
+            background-color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+        
+        .pending-info h3 {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        
+        .pending-info ul {
+            padding-left: 1.5rem;
+        }
+        
+        .pending-info li {
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+        
+        .btn-primary {
+            background-color: #4a6fdc;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a5fc6;
+            transform: translateY(-2px);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="pending-container">
+        <div class="pending-icon">⏳</div>
+        <h1 class="pending-title">Compte en attente de validation</h1>
+        
+        <p class="pending-message">
+            Merci pour votre inscription ! Votre compte est actuellement en attente de validation par notre équipe.
+            Nous devons vérifier votre carte d'identité pour garantir la sécurité de notre communauté.
+            Une fois votre identité validée, vous pourrez vous connecter et accéder à toutes les fonctionnalités de notre application.
+        </p>
+        
+        <div class="pending-info">
+            <h3>Que se passe-t-il maintenant ?</h3>
+            <ul>
+                <li>Notre équipe examine votre carte d'identité pour vérifier votre âge et votre identité</li>
+                <li>Ce processus prend généralement entre 24 et 48 heures</li>
+                <li>Vous recevrez un email dès que votre compte sera validé</li>
+                <li>Vous pourrez alors vous connecter et accéder à toutes les fonctionnalités</li>
+            </ul>
+        </div>
+        
+        <a href="{{ path('login') }}" class="btn btn-primary">Retour à la page de connexion</a>
+    </div>
+{% endblock %}
