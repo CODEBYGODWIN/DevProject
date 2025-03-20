@@ -88,4 +88,83 @@ class ProfileController extends AbstractController {
             'form' => $form->createView(),
         ]);
     }
+    
+    #[Route('/profile/id-verification', name: 'profile_id_verification')]
+    public function idVerificationStatus(Request $request, SessionInterface $session, DocumentManager $dm): Response
+    {
+        $userData = $session->get('user');
+        
+        if (!$userData) {
+            return $this->redirectToRoute('login');
+        }
+        
+        $user = $dm->getRepository(User::class)->find($userData['id']);
+        
+        if (!$user) {
+            $this->addFlash('error', 'Utilisateur introuvable.');
+            return $this->redirectToRoute('login');
+        }
+        
+        return $this->render('profile/id_verification_status.html.twig', [
+            'user' => $user,
+        ]);
+    }
+    
+    #[Route('/profile/upload-id-card', name: 'profile_upload_id_card', methods: ['GET', 'POST'])]
+    public function uploadIdCard(Request $request, SessionInterface $session, DocumentManager $dm): Response
+    {
+        $userData = $session->get('user');
+        
+        if (!$userData) {
+            return $this->redirectToRoute('login');
+        }
+        
+        $user = $dm->getRepository(User::class)->find($userData['id']);
+        
+        if (!$user) {
+            $this->addFlash('error', 'Utilisateur introuvable.');
+            return $this->redirectToRoute('login');
+        }
+        
+        if ($request->isMethod('POST')) {
+            $idCardFile = $request->files->get('id_card');
+            
+            if ($idCardFile) {
+                $idCardDirectory = $this->getParameter('uploads_directory') . '/id_cards';
+                
+                // Créer le répertoire s'il n'existe pas
+                if (!file_exists($idCardDirectory)) {
+                    mkdir($idCardDirectory, 0755, true);
+                }
+                
+                // Supprimer l'ancienne carte d'identité si elle existe
+                if ($user->getIdCard()) {
+                    $oldFile = $idCardDirectory . '/' . $user->getIdCard();
+                    if (file_exists($oldFile)) {
+                        unlink($oldFile);
+                    }
+                }
+                
+                $newIdCardFilename = 'id_card_' . uniqid() . '.' . $idCardFile->guessExtension();
+                
+                try {
+                    $idCardFile->move($idCardDirectory, $newIdCardFilename);
+                    $user->setIdCard($newIdCardFilename);
+                    $user->setIdCardVerified(false); // Réinitialiser le statut de vérification
+                    $dm->flush();
+                    
+                    $this->addFlash('success', 'Votre carte d\'identité a été téléchargée avec succès. Elle sera vérifiée prochainement.');
+                    return $this->redirectToRoute('profile_id_verification');
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Une erreur est survenue lors de l\'upload de votre carte d\'identité.');
+                }
+            } else {
+                $this->addFlash('error', 'Veuillez sélectionner un fichier.');
+            }
+        }
+        
+        return $this->render('profile/upload_id_card.html.twig', [
+            'user' => $user,
+        ]);
+    }
 }

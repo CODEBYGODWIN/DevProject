@@ -134,6 +134,19 @@
                     
                     <div class="profile-label">Birthdate:</div>
                     <div class="profile-value">{{ user.birthdate|date('F d, Y') }}</div>
+                    
+                    <div class="profile-label">ID Card:</div>
+                    <div class="profile-value">
+                        {% if user.idCard %}
+                            {% if user.idCardVerified %}
+                                <span class="badge bg-success">Verified</span>
+                            {% else %}
+                                <span class="badge bg-warning">Pending Verification</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge bg-danger">Not Uploaded</span>
+                        {% endif %}
+                    </div>
                 </div>
                 
                 <div class="bio-section">
@@ -145,6 +158,7 @@
         
         <div class="button-group">
             <a href="{{ path('profile_edit') }}" class="btn btn-primary">Edit Profile</a>
+            <a href="{{ path('profile_id_verification') }}" class="btn btn-primary">ID Verification</a>
             <a href="{{ path('home') }}" class="btn btn-secondary">Back to Home</a>
         </div>
     </div>

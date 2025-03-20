@@ -57,6 +57,23 @@
             {{ form_row(form.gender) }}
             {{ form_row(form.bio) }}
             {{ form_row(form.picture) }}
+            
+            <div class="form-group">
+                {{ form_label(form.idCard) }}
+                {{ form_widget(form.idCard, {'attr': {'class': 'form-control'}}) }}
+                {{ form_help(form.idCard) }}
+                <div class="validation-message" id="idcard-validation">
+                    <ul>
+                        <li data-rule="required" class="invalid">Une carte d'identité est requise pour la vérification</li>
+                        <li data-rule="format" class="invalid">Format accepté: JPG, PNG ou PDF</li>
+                    </ul>
+                </div>
+                <div class="id-card-preview mt-2" style="display: none;">
+                    <img id="id-card-preview-img" src="#" alt="Aperçu de la carte d'identité" style="max-width: 100%; max-height: 200px;" />
+                    <p class="text-muted small">Votre carte d'identité sera vérifiée par notre équipe après l'inscription.</p>
+                </div>
+            </div>
+            
             {{ form_row(form.save) }}
         {{ form_end(form) }}
         <button type="button" class="btn btn-link"><a href="{{ path('login') }}">Se connecter</a></button>
@@ -66,7 +83,7 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-        window.location.reload();
+        
         document.addEventListener('DOMContentLoaded', function() {
             // Email validation
             const emailInput = document.querySelector('#{{ form.email.vars.id }}');
@@ -214,6 +231,51 @@
                 }
             });
             
+            // ID Card validation
+            const idCardInput = document.querySelector('#{{ form.idCard.vars.id }}');
+            idCardInput.addEventListener('change', function() {
+                const file = this.files[0];
+                
+                // Required rule
+                const requiredRule = document.querySelector('#idcard-validation [data-rule="required"]');
+                if (file) {
+                    requiredRule.classList.remove('invalid');
+                    requiredRule.classList.add('valid');
+                } else {
+                    requiredRule.classList.remove('valid');
+                    requiredRule.classList.add('invalid');
+                }
+                
+                // Format rule
+                const formatRule = document.querySelector('#idcard-validation [data-rule="format"]');
+                if (file) {
+                    const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+                    if (validTypes.includes(file.type)) {
+                        formatRule.classList.remove('invalid');
+                        formatRule.classList.add('valid');
+                        
+                        // Show preview for images
+                        if (file.type.startsWith('image/')) {
+                            const previewContainer = document.querySelector('.id-card-preview');
+                            const previewImg = document.querySelector('#id-card-preview-img');
+                            
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                previewImg.src = e.target.result;
+                                previewContainer.style.display = 'block';
+                            }
+                            reader.readAsDataURL(file);
+                        }
+                    } else {
+                        formatRule.classList.remove('valid');
+                        formatRule.classList.add('invalid');
+                    }
+                } else {
+                    formatRule.classList.remove('valid');
+                    formatRule.classList.add('invalid');
+                }
+            });
+            
             // Form submission validation
             const form = document.getElementById('registration-form');
             form.addEventListener('submit', function(event) {
@@ -343,6 +405,33 @@
         .btn-link a:hover {
             background-color: #007bff;
             color: white;
+        }
+        
+        /* Styles pour la section de carte d'identité */
+        .form-group:has(#{{ form.idCard.vars.id }}) {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        
+        .form-group:has(#{{ form.idCard.vars.id }}) label {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .id-card-preview {
+            border: 1px dashed #ccc;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        
+        .help-text {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
         }
     </style>
 {% endblock %}

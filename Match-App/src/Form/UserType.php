@@ -38,7 +38,16 @@ class UserType extends AbstractType
                 'required' => false,
                 'data_class' => null, 
             ])
-            
+            ->add('idCard', FileType::class, [
+                'label' => 'Carte d\'identité (obligatoire pour la vérification)',
+                'required' => true,
+                'data_class' => null,
+                'attr' => [
+                    'accept' => 'image/jpeg,image/png,application/pdf',
+                    'class' => 'form-control'
+                ],
+                'help' => 'Veuillez télécharger une copie lisible de votre carte d\'identité pour vérification. Formats acceptés: JPEG, PNG, PDF.'
+            ])
             ->add('save', SubmitType::class, ['label' => 'Créer un compte']);
     }
 
